@@ -1,1 +1,17 @@
+# Datasets
+/data/raw/
+/data/processed/
+/data/experiments/
 /data/
+
+# Tasks and temporary files
+/tasks/*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+env/
+venv/

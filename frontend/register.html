@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Vulnerability Triage System</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Create Account</h1>
+    <p>Register to continue</p>
+
+    <form onsubmit="registerUser(event)">
+
+        <div class="input-group">
+            <label>Full Name</label>
+            <input
+                type="text"
+                id="name"
+                placeholder="Enter your full name"
+                required
+            >
+        </div>
+
+        <div class="input-group">
+            <label>Email Address</label>
+            <input
+                type="email"
+                id="email"
+                placeholder="Enter your email"
+                required
+            >
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <input
+                type="password"
+                id="password"
+                placeholder="Create a password"
+                required
+            >
+        </div>
+
+        <div style="margin-bottom:15px;">
+            <input
+                type="checkbox"
+                onclick="togglePassword('password')"
+                style="width:auto;"
+            >
+            Show Password
+        </div>
+
+        <div class="input-group">
+            <label>Confirm Password</label>
+            <input
+                type="password"
+                id="confirm"
+                placeholder="Confirm your password"
+                required
+            >
+        </div>
+
+        <div style="margin-bottom:20px;">
+            <input
+                type="checkbox"
+                onclick="togglePassword('confirm')"
+                style="width:auto;"
+            >
+            Show Confirm Password
+        </div>
+
+        <button type="submit">
+            Register
+        </button>
+
+    </form>
+
+    <div id="message"></div>
+
+    <div class="footer">
+        Already have an account?
+        <a href="login.html">Login</a>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
