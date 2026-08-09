@@ -1,7 +1,4 @@
-/**
- * Integrated Documentation Center Component
- * Repository: seucra/vulnarability-prioritization-triage-system
- */
+import { CONFIG } from '../config.js';
 
 export function renderDocsView(containerEl) {
     const docs = [
@@ -138,7 +135,7 @@ export function renderDocsView(containerEl) {
                 <h2 class="section-title">System & Research Documentation Center</h2>
                 <p class="section-desc">In-app access to system specifications, API references, architecture guides, dataset schemas, user manuals, and academic research logs.</p>
             </div>
-            <a href="http://localhost:8000/api/v1/docs" target="_blank" class="btn btn-outline btn-sm">
+            <a href="${CONFIG.API_BASE_URL}/docs" target="_blank" class="btn btn-outline btn-sm">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 Open FastAPI Swagger Specs
             </a>

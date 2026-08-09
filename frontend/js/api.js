@@ -3,11 +3,11 @@
  * Repository: seucra/vulnarability-prioritization-triage-system
  */
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+import { CONFIG } from './config.js';
 
 class ApiClient {
     constructor() {
-        this.baseUrl = API_BASE_URL;
+        this.baseUrl = CONFIG.API_BASE_URL;
         this.authToken = localStorage.getItem('wdl_auth_token') || null;
     }
 

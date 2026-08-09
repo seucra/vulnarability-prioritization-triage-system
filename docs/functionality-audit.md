@@ -51,7 +51,7 @@ Data access is powered by an in-memory **DuckDB** query engine reading frozen Pa
        v                                                               v
 +-----------------------------------------------------------------------------------+
 |                                 FASTAPI BACKEND                                   |
-|  (backend/app/main.py — Uvicorn Server at http://localhost:8000)                  |
+|  (backend/app/main.py — Uvicorn Server at http://localhost:5002)                  |
 |                                                                                   |
 |  +---------------------------+   +---------------------------------------------+  |
 |  | Static Files Middleware   |   | API Router (/api/v1)                        |  |
@@ -278,7 +278,7 @@ All **24 / 24 automated tests pass cleanly**.
 
 ## 8. Existing Deployment
 
-- **Local Running State**: The FastAPI application runs via Uvicorn (`PYTHONPATH=. .venv/bin/uvicorn backend.app.main:app --port 8000`), serving the backend API under `/api/v1` and mounting `frontend/` as static files under `/`.
+- **Local Running State**: The FastAPI application runs via Uvicorn (`PYTHONPATH=. .venv/bin/uvicorn backend.app.main:app --port 5002`), serving the backend API under `/api/v1` and mounting `frontend/` as static files under `/`.
 - **Docker Configuration**: **MISSING**. No `Dockerfile` or `docker-compose.yml` exists in the repository.
 - **Reverse Proxy / Tunnel Configuration**: **MISSING**. Cloudflare Tunnel (`cloudflared`) configuration files or scripts are not present in the workspace.
 - **Domain Configuration**: Target production domains (`vuln-triage.seucra.tech` for frontend and `vuln-triage-api.seucra.tech` for backend) are specified in the prompt but not yet configured in local environment files.
@@ -308,7 +308,7 @@ All **24 / 24 automated tests pass cleanly**.
 | FAQ | MISSING | No FAQ documentation section | No expandable FAQ accordion for research scoring and dataset questions | LOW |
 | Accessibility | PARTIAL | Semantic HTML tags and readable contrast in CSS | Missing ARIA attributes (`aria-expanded`, `aria-modal`), keyboard focus traps, and screen reader labels | MEDIUM |
 | Frontend deployment | MISSING | App runs locally on `http://localhost:8000` | Cloudflare Tunnel / domain setup for `vuln-triage.seucra.tech` missing | HIGH |
-| Backend deployment | MISSING | Backend runs locally on port 8000 | Production configuration and deployment docs for `vuln-triage-api.seucra.tech` missing | HIGH |
+| Backend deployment | MISSING | Backend runs locally on port 5002 | Production configuration and deployment docs for `vuln-triage-api.seucra.tech` missing | HIGH |
 | Demo flow | PARTIAL | Individual tabs exist in SPA | Structured role-based demonstration flow (Landing -> Register -> Login -> Role Dashboard -> Demo Flow -> Logout) missing | HIGH |
 
 ---

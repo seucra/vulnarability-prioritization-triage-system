@@ -1,8 +1,8 @@
 # Phase 4 — REST API Specification
 
 **Repository**: `seucra/vulnarability-prioritization-triage-system`  
-**Base URL**: `http://localhost:8000/api/v1`  
-**Interactive OpenAPI Documentation**: `http://localhost:8000/api/v1/docs`  
+**Base URL**: `http://localhost:5002/api/v1`  
+**Interactive OpenAPI Documentation**: `http://localhost:5002/api/v1/docs`  
 
 ---
 
