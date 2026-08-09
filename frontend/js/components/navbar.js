@@ -1,5 +1,5 @@
 /**
- * Navbar Component Controller (Role-Aware)
+ * Navbar Component Controller (Role-Aware & Mobile Responsive)
  * Repository: seucra/vulnarability-prioritization-triage-system
  */
 
@@ -7,6 +7,8 @@ import { api } from '../api.js';
 import { state } from '../state.js';
 
 export function renderNavbar(containerEl) {
+    let isMobileMenuOpen = false;
+
     const updateNavbarUI = (s) => {
         const user = s.currentUser;
         const isLoggedIn = !!user;
@@ -28,7 +30,16 @@ export function renderNavbar(containerEl) {
                     </div>
                 </div>
 
-                <nav class="nav-tabs" id="nav-tabs-wrapper">
+                <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Toggle navigation menu" aria-expanded="${isMobileMenuOpen}" aria-controls="nav-tabs-wrapper">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        ${isMobileMenuOpen 
+                            ? '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>' 
+                            : '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>'}
+                    </svg>
+                    <span>${isMobileMenuOpen ? 'Close' : 'Menu'}</span>
+                </button>
+
+                <nav class="nav-tabs ${isMobileMenuOpen ? 'is-open' : ''}" id="nav-tabs-wrapper">
                     <!-- Public Navigation Group -->
                     <div class="nav-group">
                         <button class="nav-tab ${s.activeTab === 'home' ? 'active' : ''}" data-tab="home">
@@ -106,6 +117,7 @@ export function renderNavbar(containerEl) {
                             </button>
                             <button class="nav-tab" id="nav-btn-logout" title="Sign Out" style="padding: 6px 10px;">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--error);"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                                <span class="mobile-only-text" style="margin-left: 6px;">Sign Out</span>
                             </button>
                         </div>
                     ` : `
@@ -135,11 +147,22 @@ export function renderNavbar(containerEl) {
             </div>
         `;
 
+        // Toggle mobile nav menu
+        const mobileToggle = containerEl.querySelector('#mobile-nav-toggle');
+        if (mobileToggle) {
+            mobileToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                isMobileMenuOpen = !isMobileMenuOpen;
+                updateNavbarUI(state.getState());
+            });
+        }
+
         // Attach click listeners to tabs
         containerEl.querySelectorAll('.nav-tab[data-tab]').forEach(btn => {
             btn.addEventListener('click', () => {
                 const tabName = btn.getAttribute('data-tab');
                 if (tabName) {
+                    isMobileMenuOpen = false; // Close menu on tab selection
                     window.location.hash = tabName;
                 }
             });
@@ -149,12 +172,21 @@ export function renderNavbar(containerEl) {
         const btnLogout = containerEl.querySelector('#nav-btn-logout');
         if (btnLogout) {
             btnLogout.addEventListener('click', async () => {
+                isMobileMenuOpen = false;
                 await api.logout();
                 state.setState({ currentUser: null, authToken: null });
                 window.location.hash = 'home';
             });
         }
     };
+
+    // Close menu on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isMobileMenuOpen) {
+            isMobileMenuOpen = false;
+            updateNavbarUI(state.getState());
+        }
+    });
 
     // Render initial UI and subscribe to state
     updateNavbarUI(state.getState());

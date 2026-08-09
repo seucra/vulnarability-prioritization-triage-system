@@ -41,7 +41,7 @@ export function renderExplanationView(containerEl) {
                 <h3 class="card-title">SHAP Feature Contributions</h3>
                 <div id="explain-output-container">
                     <div class="empty-state">
-                        <p>Click "Generate SHAP Explanation" to compute local SHAP feature attributions on the frozen model.</p>
+                        <p>Enter vulnerability description text and associated CWEs, then click "Generate SHAP Explanation" to compute feature attributions.</p>
                     </div>
                 </div>
             </div>
@@ -68,6 +68,19 @@ export function renderExplanationView(containerEl) {
     });
 
     btnRun.addEventListener('click', async () => {
+        // Check authentication state
+        const s = state.getState();
+        if (!s.currentUser && !api.getAuthToken()) {
+            outputContainer.innerHTML = `
+                <div class="empty-state" style="border: 1px dashed var(--primary); background: var(--bg-surface-low); padding: 24px; text-align: center;">
+                    <h4 style="margin: 0 0 6px 0; font-size: 15px; color: var(--text-main);">Sign In Required</h4>
+                    <p style="margin: 0 0 16px 0; font-size: 13px; color: var(--text-sub);">Please sign in or register a demonstration account to generate SHAP model explanations.</p>
+                    <button class="btn btn-primary btn-sm" onclick="window.location.hash='login'">Sign In to Continue</button>
+                </div>
+            `;
+            return;
+        }
+
         const desc = containerEl.querySelector('#explain-desc').value.trim();
         const cwesRaw = containerEl.querySelector('#explain-cwes').value;
         const cweIds = cwesRaw.split(',').map(s => s.trim()).filter(Boolean);
@@ -95,16 +108,22 @@ export function renderExplanationView(containerEl) {
             const res = mode === 'cvss' ? await api.explainCVSS(payload) : await api.explainKEV(payload);
             renderShapResult(outputContainer, res);
         } catch (err) {
-            outputContainer.innerHTML = `
-                <div class="error-banner">
-                    <strong>Explanation Error:</strong> ${err.message}
-                </div>
-            `;
+            if (err.status === 503 || err.message.includes('503') || err.message.includes('not loaded')) {
+                outputContainer.innerHTML = `
+                    <div class="empty-state" style="border: 1px dashed var(--warning); background: var(--bg-surface-low); padding: 24px; text-align: center;">
+                        <h4 style="margin: 0 0 6px 0; font-size: 15px; color: var(--warning);">Research Model Artifact Unavailable</h4>
+                        <p style="margin: 0; font-size: 13px; color: var(--text-sub);">${err.message}</p>
+                    </div>
+                `;
+            } else {
+                outputContainer.innerHTML = `
+                    <div class="error-banner">
+                        <strong>Explanation Error:</strong> ${err.message}
+                    </div>
+                `;
+            }
         }
     });
-
-    // Auto-run initial explanation
-    btnRun.click();
 }
 
 function renderShapResult(containerEl, res) {
@@ -139,10 +158,6 @@ function renderShapResult(containerEl, res) {
 
         <div class="shap-bar-container">
             ${barsHtml}
-        </div>
-
-        <div style="margin-top:16px; font-size:11px; color:var(--text-sub); background:var(--bg-surface-low); border:1px solid var(--border-color); padding:10px; border-radius:var(--radius-md); font-style:italic;">
-            ${res.causal_disclaimer}
         </div>
     `;
 }

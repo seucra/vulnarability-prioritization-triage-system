@@ -151,6 +151,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // Re-render dynamically updated components when navigating
+        if (route === 'dashboard' && views.dashboard) renderDashboardView(views.dashboard);
         if (route === 'profile' && views.profile) renderProfileView(views.profile);
         if (route === 'admin' && views.admin) renderAdminView(views.admin);
 
@@ -163,7 +164,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.addEventListener('hashchange', handleNavigation);
 
     // Reactive View Switcher
+    let prevUser = state.getState().currentUser;
     state.subscribe(s => {
+        // Re-render dashboard if auth user state changed
+        if (s.currentUser !== prevUser) {
+            prevUser = s.currentUser;
+            if (views.dashboard) renderDashboardView(views.dashboard);
+            if (views.profile) renderProfileView(views.profile);
+            if (views.admin) renderAdminView(views.admin);
+        }
+
         Object.entries(views).forEach(([routeName, el]) => {
             if (el) {
                 if (routeName === s.activeTab) {

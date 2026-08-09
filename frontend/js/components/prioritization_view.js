@@ -100,6 +100,21 @@ export function renderPrioritizationView(containerEl) {
 
     const btnCalc = containerEl.querySelector('#btn-calc-priority');
     btnCalc.addEventListener('click', async () => {
+        const outContainer = containerEl.querySelector('#prio-output-container');
+
+        // Check authentication state
+        const s = state.getState();
+        if (!s.currentUser && !api.getAuthToken()) {
+            outContainer.innerHTML = `
+                <div class="empty-state" style="border: 1px dashed var(--primary); background: var(--bg-surface-low); padding: 24px; text-align: center;">
+                    <h4 style="margin: 0 0 6px 0; font-size: 15px; color: var(--text-main);">Sign In Required</h4>
+                    <p style="margin: 0 0 16px 0; font-size: 13px; color: var(--text-sub);">Please sign in or register a demonstration account to calculate asset prioritization comparisons.</p>
+                    <button class="btn btn-primary btn-sm" onclick="window.location.hash='login'">Sign In to Continue</button>
+                </div>
+            `;
+            return;
+        }
+
         const payload = {
             cve_id: containerEl.querySelector('#prio-cve-id').value.trim() || null,
             cvss_score: parseFloat(cvssSlider.value),
@@ -108,7 +123,6 @@ export function renderPrioritizationView(containerEl) {
             asset_criticality: parseFloat(assetSlider.value),
         };
 
-        const outContainer = containerEl.querySelector('#prio-output-container');
         outContainer.innerHTML = `
             <div style="padding:30px; text-align:center;">
                 <span class="loading-spinner"></span>
@@ -127,9 +141,6 @@ export function renderPrioritizationView(containerEl) {
             `;
         }
     });
-
-    // Auto calculate initial scenario
-    btnCalc.click();
 }
 
 function renderPrioritizationResult(containerEl, res) {
@@ -165,7 +176,7 @@ function renderPrioritizationResult(containerEl, res) {
         </div>
 
         <div style="background-color: var(--bg-surface-low); border: 1px solid var(--border-color); padding: 14px; border-radius: var(--radius-md); margin-top: 16px; font-size: 12px;">
-            <div style="display:flex; justify-width:space-between; align-items:center; margin-bottom:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                 <strong>Score Shift (Mode 2 vs Mode 1):</strong>
                 <span style="font-family:var(--font-mono); font-weight:700; color: ${delta >= 0 ? 'var(--primary)' : 'var(--error)'}">
                     ${delta >= 0 ? '+' : ''}${delta.toFixed(4)} points
