@@ -12,10 +12,10 @@ import hmac
 import json
 import secrets
 import time
-from typing import Any, Dict, Optional
+from backend.app.config import settings
 
-# Secret key for HMAC token signing (falls back to a generated runtime secret if not configured)
-SECRET_KEY = "wdl-vuln-triage-secret-key-do-not-use-in-production-demo-only"
+# Secret key for HMAC token signing
+SECRET_KEY = settings.SECRET_KEY
 TOKEN_EXPIRATION_SECONDS = 86400  # 24 Hours
 
 

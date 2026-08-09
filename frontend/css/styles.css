@@ -724,3 +724,41 @@ textarea.input-control {
   align-items: center;
   gap: 8px;
 }
+
+/* Accessibility Focus States */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Responsive Hardening */
+@media (max-width: 900px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .nav-tabs {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .drawer-panel {
+    width: 100vw;
+    max-width: 100vw;
+  }
+  .provenance-grid {
+    grid-template-columns: 1fr;
+  }
+  .search-bar-row {
+    flex-direction: column;
+  }
+  .search-bar-row .input-group {
+    width: 100% !important;
+  }
+}

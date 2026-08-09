@@ -97,7 +97,7 @@ The repository contains 32 raw dataset files occupying ~1.05 GB on disk:
 | Vendor | `data/raw/vendor/` | 1 | 70.2 KB | `.xml.gz` | 1,486 `<statement>` elements, 1,452 unique CVE IDs. |
 | **Total** | | **32** | **1,078.2 MB** | | |
 
-File-level SHA-256 cryptographic signatures are recorded in [DATA_MANIFEST.md](file:///home/seucra/Runes/projects/wdl-vuln-prioritization/docs/research/DATA_MANIFEST.md).
+File-level SHA-256 cryptographic signatures are recorded in [DATA_MANIFEST.md](DATA_MANIFEST.md).
 
 ---
 

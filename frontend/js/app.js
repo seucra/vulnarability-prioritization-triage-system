@@ -19,9 +19,11 @@ import { renderLoginView } from './components/login_view.js';
 import { renderRegisterView } from './components/register_view.js';
 import { renderProfileView } from './components/profile_view.js';
 import { renderAdminView } from './components/admin_view.js';
+import { renderFaqView } from './components/faq_view.js';
+import { renderContactView } from './components/contact_view.js';
 import { state } from './state.js';
 
-const PUBLIC_ROUTES = ['home', 'about', 'docs', 'login', 'register'];
+const PUBLIC_ROUTES = ['home', 'about', 'docs', 'faq', 'contact', 'login', 'register'];
 const PROTECTED_ROUTES = ['dashboard', 'explorer', 'predict', 'prioritize', 'explain', 'provenance', 'admin', 'profile'];
 const VALID_ROUTES = [...PUBLIC_ROUTES, ...PROTECTED_ROUTES];
 
@@ -81,6 +83,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         register: document.getElementById('view-register'),
         profile: document.getElementById('view-profile'),
         admin: document.getElementById('view-admin'),
+        faq: document.getElementById('view-faq'),
+        contact: document.getElementById('view-contact'),
     };
 
     // Render Component Contents into Views
@@ -97,6 +101,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (views.register) renderRegisterView(views.register);
     if (views.profile) renderProfileView(views.profile);
     if (views.admin) renderAdminView(views.admin);
+    if (views.faq) renderFaqView(views.faq);
+    if (views.contact) renderContactView(views.contact);
 
     // Session Recovery from localStorage
     const savedToken = api.getAuthToken();

@@ -13,10 +13,20 @@ export function renderExplorer(containerEl) {
                 <h2 class="section-title">Vulnerability Triage Explorer</h2>
                 <p class="section-desc">Search, filter, and triage 366,547 canonical CVE records across official NVD CVSS scores, CISA KEV listing status, and static EPSS snapshots.</p>
             </div>
-            <button class="btn btn-outline btn-sm" id="btn-toggle-filters">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                Advanced Filters
-            </button>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-outline btn-sm" id="btn-export-csv" title="Export currently loaded page items to CSV">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Export CSV
+                </button>
+                <button class="btn btn-outline btn-sm" id="btn-export-json" title="Export currently loaded page items to JSON">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Export JSON
+                </button>
+                <button class="btn btn-outline btn-sm" id="btn-toggle-filters">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                    Advanced Filters
+                </button>
+            </div>
         </div>
 
         <!-- Search Controls Card -->
@@ -116,6 +126,16 @@ export function renderExplorer(containerEl) {
         const isHidden = filterGrid.style.display === 'none';
         filterGrid.style.display = isHidden ? 'grid' : 'none';
         btnToggle.classList.toggle('btn-secondary', isHidden);
+    });
+
+    // Export CSV Listener
+    containerEl.querySelector('#btn-export-csv').addEventListener('click', () => {
+        exportCurrentPageCsv();
+    });
+
+    // Export JSON Listener
+    containerEl.querySelector('#btn-export-json').addEventListener('click', () => {
+        exportCurrentPageJson();
     });
 
     // Execute Search Listener
@@ -297,5 +317,50 @@ function openCveDetail(cveId) {
 }
 
 function escapeHtml(str) {
+    if (!str) return '';
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function exportCurrentPageCsv() {
+    const res = state.getState().vulnerabilityResults;
+    if (!res || !res.items || res.items.length === 0) {
+        alert('No vulnerability items available on current page to export.');
+        return;
+    }
+
+    const headers = ['CVE ID', 'Published Date', 'Authoritative CVSS v3.1 Score', 'Severity', 'CISA KEV Listed', 'EPSS Score (%)', 'Description'];
+    const rows = res.items.map(item => [
+        `"${item.cve_id}"`,
+        `"${item.published ? item.published.split('T')[0] : ''}"`,
+        `"${item.cvss_v31_base_score !== null ? item.cvss_v31_base_score : ''}"`,
+        `"${item.cvss_v31_base_severity || ''}"`,
+        `"${item.is_kev ? 'TRUE' : 'FALSE'}"`,
+        `"${item.epss ? (item.epss.epss_score * 100).toFixed(2) : ''}"`,
+        `"${(item.description_en || '').replace(/"/g, '""')}"`
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `vuln_triage_export_page_${res.page || 1}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function exportCurrentPageJson() {
+    const res = state.getState().vulnerabilityResults;
+    if (!res || !res.items || res.items.length === 0) {
+        alert('No vulnerability items available on current page to export.');
+        return;
+    }
+
+    const jsonString = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(res.items, null, 2));
+    const link = document.createElement('a');
+    link.setAttribute("href", jsonString);
+    link.setAttribute("download", `vuln_triage_export_page_${res.page || 1}.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }

@@ -1,21 +1,28 @@
-/chat-deliverables/
-SKILL*
-/tests/
-
-# Datasets
+# Datasets & Experimental Data Artifacts
 /data/raw/
 /data/processed/
 /data/experiments/
-/data/
+/data/*.sqlite
 
-# Tasks and temporary files
-/tasks/*
+# Environments & Dependencies
+.env
+.venv/
+env/
+venv/
+node_modules/
 
-# Python
+# Python Cache & Bytecode
 __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
-.venv/
-env/
-venv/
+
+# OS & IDE Metadata
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# System & Application Logs
+*.log
+/tasks/*
