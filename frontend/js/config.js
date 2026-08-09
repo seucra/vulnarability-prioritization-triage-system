@@ -7,7 +7,7 @@ const isLocalhost = window.location.hostname === 'localhost' || window.location.
 
 export const CONFIG = {
     API_BASE_URL: isLocalhost 
-        ? "http://localhost:8000/api/v1" 
+        ? "http://localhost:5002/api/v1" 
         : "https://vuln-triage-api.seucra.tech/api/v1",
     PUBLIC_FRONTEND_DOMAIN: "https://vuln-triage.seucra.tech",
     PUBLIC_API_DOMAIN: "https://vuln-triage-api.seucra.tech",

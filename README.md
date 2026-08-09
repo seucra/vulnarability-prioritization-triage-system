@@ -74,13 +74,13 @@ All models follow strict **temporal evaluation partitioning** to prevent tempora
 
 2. **Start Backend API & SPA Server**:
    ```bash
-   PYTHONPATH=. uvicorn backend.app.main:app --port 8000
+   PYTHONPATH=. uvicorn backend.app.main:app --port 5002
    ```
 
 3. **Access Application**:
-   - Web Application: `http://localhost:8000/#home`
-   - System Health: `http://localhost:8000/health`
-   - OpenAPI Swagger Specifications: `http://localhost:8000/api/v1/docs`
+   - Web Application: `http://localhost:5002/#home`
+   - System Health: `http://localhost:5002/health`
+   - OpenAPI Swagger Specifications: `http://localhost:5002/api/v1/docs`
 
 ---
 
@@ -102,11 +102,9 @@ Execute the complete 39-test automated Pytest suite:
 
 The application is prepared for **Research Prototype / Public Demonstration Deployment**.
 
-- Intended Public Domains:
-  - Frontend SPA: `https://vuln-triage.seucra.tech`
-  - Backend API: `https://vuln-triage-api.seucra.tech`
-- Status: **Pending domain & Cloudflare Tunnel configuration**.
-- Full deployment instructions: See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+- **Frontend SPA**: `https://vuln-triage.seucra.tech` (Hosted on **GitHub Pages** via GitHub Actions workflow `.github/workflows/deploy_frontend.yml`).
+- **Backend REST API**: `https://vuln-triage-api.seucra.tech` (Exposed via **Cloudflare Tunnel** to local FastAPI Uvicorn listener on port 5002).
+- Full deployment details: See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ---
 

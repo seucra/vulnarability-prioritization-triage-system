@@ -5,7 +5,7 @@
 
 ---
 
-## 1. Overview
+## 1. Overview & Verified Architecture
 
 This document outlines the deployment procedure for hosting the **Vulnerability Prioritization & Triage System** as a public demonstration prototype.
 
@@ -14,9 +14,12 @@ This document outlines the deployment procedure for hosting the **Vulnerability 
 
 ---
 
-## 2. Intended Infrastructure Architecture
+## 2. Infrastructure Architecture & Production Topology
 
-The deployment topology uses Uvicorn behind a Cloudflare Tunnel for secure HTTPS termination and edge DNS routing:
+The system uses a decoupled hosting model:
+
+- **Static Frontend**: Hosted on **GitHub Pages** (`https://vuln-triage.seucra.tech`) via GitHub Actions CI/CD workflow (`.github/workflows/deploy_frontend.yml`) publishing the `frontend/` directory with `CNAME` binding.
+- **Backend REST API**: Hosted locally on `localhost:5002` and exposed publicly through a **Cloudflare Tunnel** (`https://vuln-triage-api.seucra.tech`).
 
 ```text
                [ Public Internet Users ]
@@ -24,17 +27,11 @@ The deployment topology uses Uvicorn behind a Cloudflare Tunnel for secure HTTPS
          ┌────────────────┴────────────────┐
          ▼                                 ▼
 https://vuln-triage.seucra.tech   https://vuln-triage-api.seucra.tech
- (Frontend Single-Page App)          (FastAPI Uvicorn Backend)
+   (GitHub Pages SPA)                (Cloudflare Tunnel Edge)
          │                                 │
-         └────────────────┬────────────────┘
-                          ▼
-              [ Cloudflare Tunnel Edge ]
-                          │
-                 (cloudflared daemon)
-                          │
-         ┌────────────────┴────────────────┐
-         ▼                                 ▼
-http://localhost:8000 (Static SPA)  http://localhost:8000/api/v1 (REST API)
+         │ (REST API Fetch)                ▼
+         └────────────────────────► http://localhost:5002/api/v1
+                                    (FastAPI Uvicorn Backend)
 ```
 
 ---
@@ -48,12 +45,12 @@ Create a `.env` file in the project root directory (refer to `.env.example`):
 SECRET_KEY="your-secure-random-hmac-secret-key-here"
 
 # Allowed CORS Origins
-ALLOWED_ORIGINS=["https://vuln-triage.seucra.tech","https://vuln-triage-api.seucra.tech","http://localhost:8000"]
+ALLOWED_ORIGINS=["https://vuln-triage.seucra.tech","https://vuln-triage-api.seucra.tech","http://localhost:5002","http://localhost:8000"]
 ```
 
 ---
 
-## 4. Local Development vs Public Demonstration Startup
+## 4. Local Development vs Production Demonstration Startup
 
 ### A. Local Development Startup
 
@@ -62,45 +59,40 @@ ALLOWED_ORIGINS=["https://vuln-triage.seucra.tech","https://vuln-triage-api.seuc
    source .venv/bin/activate
    ```
 
-2. **Start Backend & SPA Server**:
+2. **Start Backend API Server (Port 5002)**:
    ```bash
-   PYTHONPATH=. uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+   PYTHONPATH=. uvicorn backend.app.main:app --host 127.0.0.1 --port 5002 --reload
    ```
 
 3. **Access Local Application**:
-   - Frontend: `http://localhost:8000/#home`
-   - API Health Check: `http://localhost:8000/health`
-   - OpenAPI Swagger Specs: `http://localhost:8000/api/v1/docs`
+   - Web Application: `http://localhost:5002/#home`
+   - System Health: `http://localhost:5002/health`
+   - OpenAPI Swagger Specs: `http://localhost:5002/api/v1/docs`
 
 ---
 
-### B. Public Demonstration Deployment Procedure
+### B. Production Demonstration Backend Startup (Port 5002)
 
-1. **Service Configuration (`systemd` or Supervisor)**:
-   Run Uvicorn in production mode:
+1. **Uvicorn Service Startup**:
+   Run Uvicorn locally on port 5002:
    ```bash
-   PYTHONPATH=. uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --workers 4
+   PYTHONPATH=. uvicorn backend.app.main:app --host 127.0.0.1 --port 5002 --workers 4
    ```
 
-2. **Cloudflare Tunnel (`cloudflared`) Setup Concept**:
-   Create a Cloudflare ingress configuration (`~/.cloudflared/config.yml`):
+2. **Cloudflare Tunnel (`cloudflared`) Configuration**:
+   The Cloudflare Tunnel routes public HTTPS traffic to the local listener on port 5002:
    ```yaml
    tunnel: your-tunnel-uuid
    credentials-file: /root/.cloudflared/your-tunnel-uuid.json
 
    ingress:
-     - hostname: vuln-triage.seucra.tech
-       service: http://localhost:8000
      - hostname: vuln-triage-api.seucra.tech
-       service: http://localhost:8000
+       service: http://localhost:5002
      - service: http_status:404
    ```
 
-3. **DNS Route Association**:
-   ```bash
-   cloudflared tunnel route dns your-tunnel-name vuln-triage.seucra.tech
-   cloudflared tunnel route dns your-tunnel-name vuln-triage-api.seucra.tech
-   ```
+3. **Frontend Deployment**:
+   Pushes to `main` automatically trigger `.github/workflows/deploy_frontend.yml`, deploying `frontend/` to GitHub Pages under `https://vuln-triage.seucra.tech`.
 
 ---
 
@@ -109,7 +101,7 @@ ALLOWED_ORIGINS=["https://vuln-triage.seucra.tech","https://vuln-triage-api.seuc
 Verify application readiness using the lightweight health endpoint:
 
 ```bash
-curl -s http://localhost:8000/health
+curl -s http://localhost:5002/health
 ```
 
 Expected Response:
