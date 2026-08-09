@@ -10,10 +10,10 @@ import { renderResearcherDashboard } from './researcher_dashboard.js';
 import { renderAdminDashboard } from './admin_dashboard.js';
 
 export function renderDashboardView(containerEl) {
-    const s = state.getState();
-    const user = s.currentUser;
+    const isAuth = state.isAuthenticated();
+    const user = state.getState().currentUser;
 
-    if (!user) {
+    if (!isAuth || !user) {
         containerEl.innerHTML = `
             <div style="max-width: 560px; margin: 40px auto; text-align: center;">
                 <div class="card" style="padding: 32px; border-top: 4px solid var(--primary);">

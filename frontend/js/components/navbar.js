@@ -174,7 +174,7 @@ export function renderNavbar(containerEl) {
             btnLogout.addEventListener('click', async () => {
                 isMobileMenuOpen = false;
                 await api.logout();
-                state.setState({ currentUser: null, authToken: null });
+                state.setCurrentUser(null, null);
                 window.location.hash = 'home';
             });
         }

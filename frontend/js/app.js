@@ -23,8 +23,10 @@ import { renderFaqView } from './components/faq_view.js';
 import { renderContactView } from './components/contact_view.js';
 import { state } from './state.js';
 
-const PUBLIC_ROUTES = ['home', 'about', 'docs', 'faq', 'contact', 'login', 'register'];
-const PROTECTED_ROUTES = ['dashboard', 'explorer', 'predict', 'prioritize', 'explain', 'provenance', 'admin', 'profile'];
+// Publicly accessible routes (Interactive sandboxes handle their own internal unauthenticated states)
+const PUBLIC_ROUTES = ['home', 'about', 'docs', 'faq', 'contact', 'login', 'register', 'prioritize', 'explain', 'explorer', 'predict', 'provenance'];
+// Protected workspace routes requiring authenticated user session
+const PROTECTED_ROUTES = ['dashboard', 'admin', 'profile'];
 const VALID_ROUTES = [...PUBLIC_ROUTES, ...PROTECTED_ROUTES];
 
 function resolveRouteFromHash() {
@@ -40,10 +42,6 @@ function checkRouteAuthorization(route, user) {
 
     if (!user) {
         return { allowed: false, reason: 'unauthenticated', target: 'login' };
-    }
-
-    if (route === 'prioritize' && user.role === 'researcher') {
-        return { allowed: false, reason: 'forbidden', roleRequired: 'Security Analyst or Administrator' };
     }
 
     if (route === 'admin' && user.role !== 'admin') {
@@ -104,16 +102,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (views.faq) renderFaqView(views.faq);
     if (views.contact) renderContactView(views.contact);
 
-    // Session Recovery from localStorage
+    // Session Verification & Synchronization from Server
     const savedToken = api.getAuthToken();
     if (savedToken) {
         try {
             const userContext = await api.getMe();
-            state.setState({ currentUser: userContext, isSessionLoading: false });
+            state.setCurrentUser(userContext, savedToken);
         } catch (e) {
-            console.warn("Session recovery failed, clearing token.");
-            api.setAuthToken(null);
-            state.setState({ currentUser: null, isSessionLoading: false });
+            console.warn("Session recovery failed, clearing stale session.");
+            state.setCurrentUser(null, null);
         }
     } else {
         state.setState({ isSessionLoading: false });

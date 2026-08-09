@@ -11,17 +11,21 @@ class ApiClient {
         this.authToken = localStorage.getItem('wdl_auth_token') || null;
     }
 
-    setAuthToken(token) {
+    setAuthToken(token, user = null) {
         this.authToken = token;
         if (token) {
             localStorage.setItem('wdl_auth_token', token);
+            if (user) {
+                localStorage.setItem('wdl_user', JSON.stringify(user));
+            }
         } else {
             localStorage.removeItem('wdl_auth_token');
+            localStorage.removeItem('wdl_user');
         }
     }
 
     getAuthToken() {
-        return this.authToken;
+        return this.authToken || localStorage.getItem('wdl_auth_token');
     }
 
     async request(endpoint, options = {}) {
@@ -31,8 +35,9 @@ class ApiClient {
             ...(options.headers || {})
         };
 
-        if (this.authToken) {
-            headers['Authorization'] = `Bearer ${this.authToken}`;
+        const token = this.getAuthToken();
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
         }
 
         const config = {

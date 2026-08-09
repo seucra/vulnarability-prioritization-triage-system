@@ -103,8 +103,7 @@ export function renderPrioritizationView(containerEl) {
         const outContainer = containerEl.querySelector('#prio-output-container');
 
         // Check authentication state
-        const s = state.getState();
-        if (!s.currentUser && !api.getAuthToken()) {
+        if (!state.isAuthenticated()) {
             outContainer.innerHTML = `
                 <div class="empty-state" style="border: 1px dashed var(--primary); background: var(--bg-surface-low); padding: 24px; text-align: center;">
                     <h4 style="margin: 0 0 6px 0; font-size: 15px; color: var(--text-main);">Sign In Required</h4>

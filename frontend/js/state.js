@@ -6,13 +6,26 @@
 class AppState {
     constructor() {
         this.listeners = [];
+
+        let savedUser = null;
+        try {
+            const rawUser = localStorage.getItem('wdl_user');
+            if (rawUser) {
+                savedUser = JSON.parse(rawUser);
+            }
+        } catch (e) {
+            console.warn("Failed to parse cached user state from localStorage.");
+        }
+
+        const savedToken = localStorage.getItem('wdl_auth_token') || null;
+
         this.data = {
             // Active route tab
             activeTab: 'home',
             
-            // Authentication state
-            currentUser: null, // { id, email, name, role, created_at, is_active }
-            authToken: localStorage.getItem('wdl_auth_token') || null,
+            // Authentication state (Synchronously hydrated from localStorage)
+            currentUser: savedUser,
+            authToken: savedToken,
             isSessionLoading: true,
             authError: null,
             
@@ -77,6 +90,32 @@ class AppState {
             isAdminLoading: false,
             adminError: null,
         };
+    }
+
+    isAuthenticated() {
+        const token = this.data.authToken || localStorage.getItem('wdl_auth_token');
+        return !!(this.data.currentUser && token);
+    }
+
+    setCurrentUser(user, token) {
+        if (token) {
+            localStorage.setItem('wdl_auth_token', token);
+        } else {
+            localStorage.removeItem('wdl_auth_token');
+        }
+
+        if (user) {
+            localStorage.setItem('wdl_user', JSON.stringify(user));
+        } else {
+            localStorage.removeItem('wdl_user');
+        }
+
+        this.setState({
+            currentUser: user,
+            authToken: token,
+            isSessionLoading: false,
+            authError: null
+        });
     }
 
     subscribe(listener) {

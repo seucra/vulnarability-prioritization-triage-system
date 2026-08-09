@@ -83,7 +83,7 @@ export function renderLoginView(containerEl) {
 
         try {
             const res = await api.login({ email, password });
-            state.setState({ currentUser: res.user, authToken: res.access_token });
+            state.setCurrentUser(res.user, res.access_token);
             window.location.hash = 'dashboard';
         } catch (err) {
             errorContainer.innerHTML = `
