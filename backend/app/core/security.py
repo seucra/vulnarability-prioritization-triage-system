@@ -12,6 +12,8 @@ import hmac
 import json
 import secrets
 import time
+from typing import Any, Dict, Optional
+
 from backend.app.config import settings
 
 # Secret key for HMAC token signing
