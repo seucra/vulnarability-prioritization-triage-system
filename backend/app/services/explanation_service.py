@@ -9,6 +9,7 @@ import numpy as np
 
 import shap
 from backend.app.config import settings
+from backend.app.core.exceptions import ModelNotLoadedException
 from backend.app.schemas.explanation import (
     FeatureContribution,
     SHAPExplanationResponse,
@@ -52,6 +53,9 @@ class ExplanationService:
         product_count: int,
         pub_month: int
     ) -> SHAPExplanationResponse:
+        if inference_service.model_a1 is None or inference_service.vec_a1 is None:
+            raise ModelNotLoadedException("EXP-A1 XGBoost Regressor")
+
         explainer = self._get_explainer_a1()
         X_vec = inference_service._build_feature_vector(
             description_en, cwe_ids, cpe_count, cpe_part_a_count,
@@ -104,6 +108,9 @@ class ExplanationService:
         product_count: int,
         pub_month: int
     ) -> SHAPExplanationResponse:
+        if inference_service.model_b2 is None or inference_service.vec_b2 is None:
+            raise ModelNotLoadedException("EXP-B2 XGBoost Classifier")
+
         explainer = self._get_explainer_b2()
         X_vec = inference_service._build_feature_vector(
             description_en, cwe_ids, cpe_count, cpe_part_a_count,
