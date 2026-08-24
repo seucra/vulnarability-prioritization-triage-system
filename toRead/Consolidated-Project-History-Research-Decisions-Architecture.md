@@ -1442,3 +1442,26 @@ The later application work adds usability, authentication, role-specific workflo
 
 That separation is the final architectural and methodological principle of the project.
 
+---
+
+# 43. Sprint WDL-7: Batch Vulnerability Triage Queue Integration
+
+While previous sprints provided robust single-vulnerability prioritization simulation, real-world security operations teams require triaging batches of incoming vulnerabilities disclosed across enterprise software assets. Sprint WDL-7 addressed this operational gap by introducing an analyst-facing **Batch Vulnerability Triage Queue** (`#triage`).
+
+## 1. Operational Capability Added
+- Multi-CVE input ingestion (text area supporting comma/space/newline separated lists up to 100 items).
+- Automatic database metadata lookup (CVSS v3.1, EPSS probability/percentile, CISA KEV listing).
+- Explicit per-item processing status (`success`, `not_found`, `validation_error`) ensuring zero items silently disappear.
+- Dual-mode prioritization execution (Mode 1 Equal-Weights $S_{\text{linear}}$ vs Mode 2 Interactive Surface $S_{\text{nonlinear}}$ across Asset Criticality Tiers 0.25–1.00).
+- Deterministic 5-level tie-breaking rank sorting.
+- Client-side CSV/JSON export, print report generator, and detail drawer integration.
+
+## 2. Research Boundary Preservation
+The batch feature was deliberately implemented strictly at the **application layer**. It reuses the exact underlying scoring functions, DuckDB query engine, and model artifacts established in Phase 3 & 4 without modifying frozen Parquet datasets, experiment definitions (EXP-A1, B1, B2, C1), trained XGBoost binaries, or mathematical formulas.
+
+## 3. RBAC Enforcement & Verification
+- **Role Permissions**: Access is strictly restricted to **Security Analyst** and **Administrator** roles. Academic Researchers attempting direct route or API access receive `HTTP 403 Forbidden`, while unauthenticated requests receive `HTTP 401 Unauthorized`.
+- **Live E2E Verification**: Verified over the deployed public tunneled backend (`https://vuln-triage-api.seucra.tech`) and frontend router shell.
+- **Automated Test Status**: 46 / 46 Pytest tests passing (39 core regression tests + 7 batch triage tests).
+
+

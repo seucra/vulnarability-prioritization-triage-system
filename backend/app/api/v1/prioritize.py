@@ -6,6 +6,10 @@ Repository: seucra/vulnarability-prioritization-triage-system
 from fastapi import APIRouter, Depends, status
 from backend.app.api.deps import require_roles
 from backend.app.schemas.auth import UserResponse
+from backend.app.schemas.batch_prioritization import (
+    BatchPrioritizationRequest,
+    BatchPrioritizationResponse,
+)
 from backend.app.schemas.prioritization import (
     PrioritizationRequest,
     PrioritizationResponse,
@@ -27,3 +31,18 @@ def prioritize_vulnerability(
     current_user: UserResponse = Depends(require_roles(["analyst", "admin"]))
 ):
     return scoring_service.prioritize(req)
+
+
+@router.post(
+    "/batch",
+    response_model=BatchPrioritizationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Execute Batch Vulnerability Triage Queue Scoring",
+    description="Processes a batch list of CVE IDs (Max 100 items), auto-populating system vulnerability metadata (CVSS v3.1, EPSS probability, CISA KEV listing), and returns a deterministically ranked vulnerability triage queue with Mode 1 vs Mode 2 scores, score shift indicators, and item-level error status. Restricted to Security Analyst and Administrator roles."
+)
+def prioritize_vulnerability_batch(
+    req: BatchPrioritizationRequest,
+    current_user: UserResponse = Depends(require_roles(["analyst", "admin"]))
+):
+    return scoring_service.prioritize_batch(req)
+

@@ -205,6 +205,70 @@ Computes priority scores under Mode 1 (Linear Equal Weights) and Mode 2 (Nonline
 
 ---
 
+### `POST /api/v1/prioritize/batch`
+Executes batch vulnerability triage scoring over a list of CVE IDs (Max 100 items per request).
+
+**Request Payload**:
+```json
+{
+  "items": [
+    { "cve_id": "CVE-2021-44228" },
+    { "cve_id": "CVE-2023-23397", "asset_criticality": 1.0 },
+    {
+      "cve_id": "CVE-2021-26855",
+      "cvss_score": 9.8,
+      "epss_score": 0.90,
+      "is_kev": true,
+      "custom_label": "Analyst Override Example"
+    }
+  ],
+  "default_asset_criticality": 0.75,
+  "primary_sort": "mode_2",
+  "sort_dir": "desc"
+}
+```
+
+**Example Response**:
+```json
+{
+  "total_requested": 3,
+  "total_processed": 3,
+  "total_errors": 0,
+  "primary_sort": "mode_2",
+  "sort_dir": "desc",
+  "summary": {
+    "total_requested": 3,
+    "total_processed": 3,
+    "total_errors": 0,
+    "high_priority_count": 3,
+    "kev_count": 3,
+    "avg_mode_2_score": 0.9856,
+    "max_score_shift": 0.0834
+  },
+  "items": [
+    {
+      "rank": 1,
+      "cve_id": "CVE-2021-44228",
+      "custom_label": null,
+      "cvss_score": 10.0,
+      "epss_score": 0.9754,
+      "is_kev": true,
+      "asset_criticality": 0.75,
+      "asset_criticality_tier": "Tier 3 (High Criticality: 0.75)",
+      "linear_score": 0.9314,
+      "nonlinear_score": 0.75,
+      "score_shift": -0.1814,
+      "status": "success",
+      "error_message": null,
+      "is_analyst_override": false
+    }
+  ]
+}
+```
+
+
+---
+
 ## 4. SHAP Explanation Endpoints
 
 ### `POST /api/v1/explain/cvss`

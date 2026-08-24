@@ -89,6 +89,51 @@ class DatabaseEngine:
         
         return row
 
+    def get_vulnerabilities_by_ids(self, cve_ids: List[str]) -> Dict[str, Dict[str, Any]]:
+        """
+        Batch fetches vulnerability metadata for a list of CVE IDs in a single DuckDB query over Parquet files.
+        Returns a dictionary mapping normalized UPPER(CVE-ID) to record dictionary.
+        """
+        if not cve_ids:
+            return {}
+
+        cve_ids_clean = list(set(c.strip().upper() for c in cve_ids if c and c.strip()))
+        if not cve_ids_clean:
+            return {}
+
+        conn = self.get_connection()
+        placeholders = ", ".join(["?"] * len(cve_ids_clean))
+        
+        query = f"""
+            SELECT 
+                v.cve_id,
+                v.publication_year,
+                v.published,
+                v.description_en,
+                v.cvss_v31_base_score,
+                v.cvss_v31_severity,
+                e.epss AS epss_score,
+                e.percentile AS epss_percentile,
+                CASE WHEN k.cve_id IS NOT NULL THEN TRUE ELSE FALSE END AS is_kev
+            FROM read_parquet('{self.vuln_parquet}') v
+            LEFT JOIN read_parquet('{self.epss_parquet}') e ON v.cve_id = e.cve_id
+            LEFT JOIN read_parquet('{self.kev_parquet}') k ON v.cve_id = k.cve_id
+            WHERE UPPER(v.cve_id) IN ({placeholders})
+        """
+        df_res = conn.execute(query, cve_ids_clean).df()
+        conn.close()
+
+        result = {}
+        for r in df_res.to_dict(orient="records"):
+            cve_key = r["cve_id"].upper()
+            for k, val in r.items():
+                if pd.isna(val):
+                    r[k] = None
+            result[cve_key] = r
+
+        return result
+
+
     def search_vulnerabilities(
         self,
         q: Optional[str] = None,

@@ -13,6 +13,7 @@ import { renderExplorer } from './components/explorer.js';
 import { renderDetailModal } from './components/detail_modal.js';
 import { renderPredictionView } from './components/prediction_view.js';
 import { renderPrioritizationView } from './components/prioritization_view.js';
+import { renderTriageView } from './components/triage_view.js';
 import { renderExplanationView } from './components/explanation_view.js';
 import { renderProvenanceView } from './components/provenance_view.js';
 import { renderLoginView } from './components/login_view.js';
@@ -26,7 +27,7 @@ import { state } from './state.js';
 // Publicly accessible routes (Interactive sandboxes handle their own internal unauthenticated states)
 const PUBLIC_ROUTES = ['home', 'about', 'docs', 'faq', 'contact', 'login', 'register', 'prioritize', 'explain', 'explorer', 'predict', 'provenance'];
 // Protected workspace routes requiring authenticated user session
-const PROTECTED_ROUTES = ['dashboard', 'admin', 'profile'];
+const PROTECTED_ROUTES = ['dashboard', 'admin', 'profile', 'triage'];
 const VALID_ROUTES = [...PUBLIC_ROUTES, ...PROTECTED_ROUTES];
 
 function resolveRouteFromHash() {
@@ -46,6 +47,10 @@ function checkRouteAuthorization(route, user) {
 
     if (route === 'admin' && user.role !== 'admin') {
         return { allowed: false, reason: 'forbidden', roleRequired: 'Administrator' };
+    }
+
+    if (route === 'triage' && !['analyst', 'admin'].includes(user.role)) {
+        return { allowed: false, reason: 'forbidden', roleRequired: 'Security Analyst or Administrator' };
     }
 
     return { allowed: true };
@@ -75,6 +80,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         explorer: document.getElementById('view-explorer'),
         predict: document.getElementById('view-predict'),
         prioritize: document.getElementById('view-prioritize'),
+        triage: document.getElementById('view-triage'),
         explain: document.getElementById('view-explain'),
         provenance: document.getElementById('view-provenance'),
         login: document.getElementById('view-login'),
@@ -94,6 +100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (views.predict) renderPredictionView(views.predict);
     if (views.prioritize) renderPrioritizationView(views.prioritize);
     if (views.explain) renderExplanationView(views.explain);
+
     if (views.provenance) renderProvenanceView(views.provenance);
     if (views.login) renderLoginView(views.login);
     if (views.register) renderRegisterView(views.register);
@@ -101,6 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (views.admin) renderAdminView(views.admin);
     if (views.faq) renderFaqView(views.faq);
     if (views.contact) renderContactView(views.contact);
+
 
     // Session Verification & Synchronization from Server
     const savedToken = api.getAuthToken();
@@ -149,12 +157,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Re-render dynamically updated components when navigating
         if (route === 'dashboard' && views.dashboard) renderDashboardView(views.dashboard);
+        if (route === 'triage' && views.triage) renderTriageView(views.triage);
         if (route === 'profile' && views.profile) renderProfileView(views.profile);
         if (route === 'admin' && views.admin) renderAdminView(views.admin);
 
         state.setState({ activeTab: route });
         window.scrollTo(0, 0);
     };
+
 
     // Initial navigation check & hashchange listener
     handleNavigation();

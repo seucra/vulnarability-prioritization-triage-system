@@ -172,6 +172,14 @@ class ApiClient {
         });
     }
 
+    async prioritizeBatch(payload) {
+        return this.request('/prioritize/batch', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+    }
+
+
     async explainCvss(payload) {
         return this.request('/explain/cvss', {
             method: 'POST',

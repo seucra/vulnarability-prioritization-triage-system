@@ -30,11 +30,13 @@ The frontend uses a single router shell (`dashboard_view.js`) that inspects the 
 1. **`analyst_dashboard.js`**:
    - **Target Audience**: Security Analysts / Triage Engineers.
    - **Key Focus**: Operational triage, active threat discovery, KEV catalog highlights, recent CVE triage history (`localStorage`).
-   - **4-Step Guided Workflow**:
+   - **5-Step Guided Workflow**:
      1. Explore & Filter (`#explorer`)
      2. Predict Risk (`#predict`)
      3. Asset Prioritization (`#prioritize`)
-     4. Explain Features (`#explain`)
+     4. Batch Vulnerability Triage Queue (`#triage`)
+     5. Explain Features (`#explain`)
+
 
 2. **`researcher_dashboard.js`**:
    - **Target Audience**: Academic Researchers & Data Scientists.

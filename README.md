@@ -1,6 +1,6 @@
 # Vulnerability Prioritization & Triage System
 
-[![Build & Test Status](https://img.shields.io/badge/pytest-39%20passed-success)](https://github.com/seucra/vulnarability-prioritization-triage-system)
+[![Build & Test Status](https://img.shields.io/badge/pytest-46%20passed-success)](https://github.com/seucra/vulnarability-prioritization-triage-system)
 [![Dataset Freeze](https://img.shields.io/badge/dataset--freeze-2026--07--26-blue)](docs/research/PROCESSED_DATA_MANIFEST.md)
 [![EPSS Snapshot](https://img.shields.io/badge/epss--snapshot-2026--07--16-informational)](docs/research/PROCESSED_DATA_MANIFEST.md)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -15,13 +15,18 @@ A research-backed decision-support web application for vulnerability prioritizat
 
 Security operations teams face an overwhelming annual volume of newly disclosed Common Vulnerabilities and Exposures (CVEs). Official National Vulnerability Database (NVD) CVSS base score assessments often suffer from publication disclosure lag (weeks to months), while EPSS scores and CISA Known Exploited Vulnerabilities (KEV) listings reflect post-publication observations.
 
-This project implements a reproducible data engineering pipeline (Phase 0–1), temporal machine learning evaluation protocol (Phase 2–3), FastAPI REST application layer (Phase 4), and role-aware single-page application (WDL-1–4) to support immediate vulnerability triage upon initial public disclosure.
+This project implements a reproducible data engineering pipeline (Phase 0–1), temporal machine learning evaluation protocol (Phase 2–3), FastAPI REST application layer (Phase 4), role-aware single-page application (WDL-1–4), and an analyst-facing **Batch Vulnerability Triage Queue** operational workflow (WDL-7) to support immediate vulnerability triage upon disclosure.
+
+> **Research vs Application Boundary Notice**:  
+> - **Research Layer (Unchanged)**: The underlying research experiments (EXP-A1, EXP-B1, EXP-B2, EXP-C1), temporal splits, serialized XGBoost models, and prioritization surface formulas remain frozen.  
+> - **Application Layer (WDL-7 Operational Workflow)**: Provides an operational queue manager allowing analysts to paste lists of CVE IDs (up to 100 items), auto-populate metadata, apply Mode 1/Mode 2 scoring, and output ranked priority queues with CSV/JSON export and detail drawer integration.
 
 ---
 
 ## Key Features & Capabilities
 
 - **Vulnerability Explorer**: Search, filter, and triage **366,547 canonical CVE records** (2002–2026) across vendor, product, CWE weakness, CVSS severity range, and CISA KEV status. Includes CSV and JSON export tools.
+- **Batch Vulnerability Triage Queue (WDL-7)**: Analyst-facing queue workflow accepting multi-CVE text input (up to 100 items per request). Auto-populates CVSS v3.1, EPSS, and CISA KEV metadata, supports analyst score overrides, executes Mode 1 vs Mode 2 prioritization, and renders deterministically ranked priority queues with item-level error status (`success`, `not_found`, `validation_error`), CSV/JSON exports, and print report generation. Restricted to Security Analyst and Administrator roles.
 - **Pre-Scoring CVSS Estimation (EXP-A1)**: Pre-scoring XGBoost regressor predicting official NVD CVSS v3.1 base scores ($MAE = 0.9750$) from initial text descriptions and metadata available at disclosure time.
 - **Publication-Time KEV Risk Prediction (EXP-B2)**: XGBoost binary classifier predicting eventual CISA KEV catalog inclusion ($PR\text{-}AUC = 0.02884$, $8.96\times$ precision uplift over random baseline) strictly excluding post-publication telemetry to prevent data leakage (EXP-B1).
 - **Dual-Mode Prioritization Engine (EXP-C1)**: Combines vulnerability severity, threat likelihood, and 4 controlled asset criticality tiers ($A \in \{0.25, 0.50, 0.75, 1.00\}$) using **Mode 1** (Linear Equal Weights $S_{\text{linear}}$) or **Mode 2** (Nonlinear Interactive Surface $S_{\text{nonlinear}}$).
@@ -86,15 +91,16 @@ All models follow strict **temporal evaluation partitioning** to prevent tempora
 
 ## Automated Testing Suite
 
-Execute the complete 39-test automated Pytest suite:
+Execute the complete 46-test automated Pytest suite:
 
 ```bash
-.venv/bin/python -m pytest tests/test_auth_rbac.py tests/test_backend_api.py tests/test_etl_invariants.py
+PYTHONPATH=. .venv/bin/python -m pytest tests/ -v
 ```
 
 ```text
-======================= 39 passed in 11.92s =======================
+======================= 46 passed in 9.38s =======================
 ```
+
 
 ---
 
