@@ -1,0 +1,320 @@
+[
+  {
+    "test_id": "TEST-SYS-01",
+    "category": "System Health & Provenance",
+    "name": "System Health Check and Dataset Freeze Verification",
+    "inputs": {
+      "endpoint": "GET /health"
+    },
+    "expected": {
+      "status_code": 200,
+      "status": "healthy",
+      "dataset_freeze_date": "2026-07-26"
+    },
+    "actual": {
+      "status_code": 200,
+      "status": "healthy",
+      "dataset_freeze_date": "2026-07-26"
+    },
+    "status": "PASS",
+    "details": "Ensures research freeze integrity and API availability."
+  },
+  {
+    "test_id": "TEST-SYS-02",
+    "category": "System Health & Provenance",
+    "name": "Research Provenance & 4 Experiment Binaries Verification",
+    "inputs": {
+      "endpoint": "GET /api/v1/provenance"
+    },
+    "expected": {
+      "status_code": 200,
+      "experiments_count": 4,
+      "freeze_date": "2026-07-26"
+    },
+    "actual": {
+      "status_code": 200,
+      "experiments_count": 4,
+      "freeze_date": "2026-07-26"
+    },
+    "status": "PASS",
+    "details": "Confirms cryptographic hashes and frozen benchmarks for EXP-A1, EXP-B1, EXP-B2, and EXP-C1."
+  },
+  {
+    "test_id": "TEST-AUTH-01",
+    "category": "Authentication & RBAC",
+    "name": "Security Analyst Authentication & PBKDF2 Password Hashing",
+    "inputs": {
+      "email": "prof_analyst@test.sec",
+      "role": "analyst"
+    },
+    "expected": {
+      "status_code": 200,
+      "token_issued": true,
+      "role": "analyst"
+    },
+    "actual": {
+      "status_code": 200,
+      "token_issued": true,
+      "role": "analyst"
+    },
+    "status": "PASS",
+    "details": "Validates PBKDF2-HMAC-SHA256 password hashing and JWT token issuance for analysts."
+  },
+  {
+    "test_id": "TEST-AUTH-02",
+    "category": "Authentication & RBAC",
+    "name": "Academic Researcher Authentication & Role Separation",
+    "inputs": {
+      "email": "prof_researcher@test.sec",
+      "role": "researcher"
+    },
+    "expected": {
+      "status_code": 200,
+      "token_issued": true,
+      "role": "researcher"
+    },
+    "actual": {
+      "status_code": 200,
+      "token_issued": true,
+      "role": "researcher"
+    },
+    "status": "PASS",
+    "details": "Validates researcher identity and separation from analyst privileges."
+  },
+  {
+    "test_id": "TEST-AUTH-03",
+    "category": "Authentication & RBAC",
+    "name": "Least Privilege Enforcement (Analyst denied Admin API)",
+    "inputs": {
+      "endpoint": "GET /api/v1/auth/users",
+      "token_role": "analyst"
+    },
+    "expected": {
+      "status_code": 403,
+      "detail": "Forbidden: Requires role in ['admin']"
+    },
+    "actual": {
+      "status_code": 403,
+      "detail": "Forbidden: Access requires one of the following roles: admin"
+    },
+    "status": "PASS",
+    "details": "Enforces server-side RBAC boundary preventing non-admin accounts from viewing user registries."
+  },
+  {
+    "test_id": "TEST-AUTH-04",
+    "category": "Authentication & RBAC",
+    "name": "Administrator Authorized Access to User Registry",
+    "inputs": {
+      "endpoint": "GET /api/v1/auth/users",
+      "token_role": "admin"
+    },
+    "expected": {
+      "status_code": 200,
+      "is_list": true
+    },
+    "actual": {
+      "status_code": 200,
+      "is_list": true
+    },
+    "status": "PASS",
+    "details": "Confirms administrator access authorization."
+  },
+  {
+    "test_id": "TEST-DB-01",
+    "category": "DuckDB Analytical Engine",
+    "name": "Full-Text & Index Search over 366k Canonical CVEs (Log4j)",
+    "inputs": {
+      "query": "Log4j",
+      "page_size": 5
+    },
+    "expected": {
+      "status_code": 200,
+      "total_found": "> 0",
+      "items_returned": "<= 5"
+    },
+    "actual": {
+      "status_code": 200,
+      "total_found": 35,
+      "items_returned": 5
+    },
+    "status": "PASS",
+    "details": "Columnar Parquet scan through 366,547 historical CVEs completed in milliseconds."
+  },
+  {
+    "test_id": "TEST-DB-02",
+    "category": "DuckDB Analytical Engine",
+    "name": "Canonical CVE-2021-44228 Ground Truth & EPSS Metadata Separation",
+    "inputs": {
+      "cve_id": "CVE-2021-44228"
+    },
+    "expected": {
+      "cve_id": "CVE-2021-44228",
+      "cvss_v31_base_score": 10.0,
+      "is_kev": true,
+      "epss_snapshot_date": "2026-07-16T12:03:48Z"
+    },
+    "actual": {
+      "cve_id": "CVE-2021-44228",
+      "cvss_v31_base_score": 10.0,
+      "is_kev": true,
+      "epss_snapshot_date": "2026-07-16T12:03:48Z"
+    },
+    "status": "PASS",
+    "details": "Strictly records EPSS snapshot metadata with explicit flag indicating non-retroactive usage."
+  },
+  {
+    "test_id": "TEST-ML-01",
+    "category": "EXP-A1 Pre-Scoring CVSS",
+    "name": "Early Pre-Scoring Estimation for Unauthenticated RCE",
+    "inputs": {
+      "cwe": [
+        "CWE-502"
+      ],
+      "summary": "Unauthenticated Remote Code Execution"
+    },
+    "expected": {
+      "score_range": "[7.5, 10.0]",
+      "model": "EXP-A1 XGBoost Regressor",
+      "mae_benchmark": 0.975
+    },
+    "actual": {
+      "predicted_score": 8.44,
+      "model": "EXP-A1 XGBoost Regressor",
+      "mae_benchmark": 0.975
+    },
+    "status": "PASS",
+    "details": "XGBoost regressor estimated CVSS Base = 8.44 (Authoritative: 10.0)."
+  },
+  {
+    "test_id": "TEST-ML-02",
+    "category": "EXP-B2 Publication-Time KEV",
+    "name": "Publication-Time KEV Likelihood Prediction (Strict Temporal Boundary)",
+    "inputs": {
+      "cwe": [
+        "CWE-120"
+      ],
+      "desc": "Buffer overflow remote memory corruption"
+    },
+    "expected": {
+      "probability_range": "[0.0, 1.0]",
+      "model": "EXP-B2 XGBoost Classifier",
+      "pr_auc_benchmark": 0.02884
+    },
+    "actual": {
+      "probability": 0.0108,
+      "model": "EXP-B2 XGBoost Classifier",
+      "pr_auc_benchmark": 0.02884
+    },
+    "status": "PASS",
+    "details": "Model generates bounded probability p=0.0108 without accessing future telemetry."
+  },
+  {
+    "test_id": "TEST-ML-03",
+    "category": "EXP-B2 Leakage Prevention",
+    "name": "Temporal Boundary Guard: Rejecting Post-Publication EPSS/CVSS Injections",
+    "inputs": {
+      "attempted_leakage_features": [
+        "epss",
+        "cvss_v31_base_score"
+      ]
+    },
+    "expected": {
+      "status_code": 422,
+      "rejected": true
+    },
+    "actual": {
+      "status_code": 422,
+      "rejected": true
+    },
+    "status": "PASS",
+    "details": "Pydantic strict schema prevents data leakage by refusing post-publication EPSS/CVSS parameters."
+  },
+  {
+    "test_id": "TEST-MATH-01",
+    "category": "EXP-C1 Prioritization Math",
+    "name": "Mode 1 (Linear Equal Weights) Analytical Exactness",
+    "inputs": {
+      "CVSS": 10.0,
+      "EPSS": 0.95,
+      "KEV": true,
+      "Asset": 1.0
+    },
+    "expected": {
+      "theoretical_score": 0.9875
+    },
+    "actual": {
+      "computed_score": 0.9875
+    },
+    "status": "PASS",
+    "details": "Verified: S_linear = 0.25*(1.0) + 0.25*(0.95) + 0.25*(1.0) + 0.25*(1.0) = 0.9875"
+  },
+  {
+    "test_id": "TEST-MATH-02",
+    "category": "EXP-C1 Prioritization Math",
+    "name": "Mode 2 (Nonlinear Interactive Surface) Exactness & Multi-Attribute Saturation",
+    "inputs": {
+      "CVSS": 10.0,
+      "EPSS": 0.95,
+      "KEV": true,
+      "Asset": 1.0
+    },
+    "expected": {
+      "theoretical_score": 1.0
+    },
+    "actual": {
+      "computed_score": 1.0
+    },
+    "status": "PASS",
+    "details": "Verified: S_nonlinear multi-attribute interactive surface = 1.0000"
+  },
+  {
+    "test_id": "TEST-SHAP-01",
+    "category": "SHAP Explainability",
+    "name": "TreeExplainer Local Feature Attributions & Causal Disclaimer Integrity",
+    "inputs": {
+      "model": "EXP-A1 XGBoost Regressor",
+      "cwe": [
+        "CWE-502"
+      ]
+    },
+    "expected": {
+      "top_features_count": "> 0",
+      "has_scientific_disclaimer": true
+    },
+    "actual": {
+      "top_features_count": 10,
+      "has_scientific_disclaimer": true
+    },
+    "status": "PASS",
+    "details": "Generated 10 feature attributions."
+  },
+  {
+    "test_id": "TEST-BATCH-01",
+    "category": "WDL-7 Batch Triage Queue",
+    "name": "Multi-CVE Queue Processing, Override Application & Error Resilience",
+    "inputs": {
+      "requested_items": [
+        "CVE-2021-44228",
+        "CVE-2023-23397",
+        "CVE-9999-99999",
+        "Malformed Item Without CVE ID or Scores"
+      ]
+    },
+    "expected": {
+      "CVE-2021-44228": "success",
+      "CVE-2023-23397": "success",
+      "CVE-9999-99999": "not_found",
+      "Malformed Item Without CVE ID or Scores": "validation_error",
+      "top_ranked_cve": "CVE-2021-44228"
+    },
+    "actual": {
+      "CVE-2021-44228": "success",
+      "CVE-2023-23397": "success",
+      "CVE-9999-99999": "not_found",
+      "Malformed Item Without CVE ID or Scores": "validation_error",
+      "top_ranked_cve": "CVE-2021-44228"
+    },
+    "status": "PASS",
+    "details": "Processed batch with mixed valid/missing/invalid entries, correctly applying analyst override to Rank #1."
+  }
+]

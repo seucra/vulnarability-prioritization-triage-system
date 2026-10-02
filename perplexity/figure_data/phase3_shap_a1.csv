@@ -1,0 +1,16 @@
+rank,feature,shap_importance
+1,tfidf_unauthorized,0.34222
+2,tfidf_unauthenticated,0.34216
+3,tfidf_critical,0.2721
+4,tfidf_accessible,0.19013
+5,CWE-79,0.18454
+6,tfidf_remote code,0.18176
+7,tfidf_manager,0.13819
+8,tfidf_apache,0.126
+9,tfidf_confidentiality,0.11882
+10,CWE-94,0.11138
+11,tfidf_state,0.10831
+12,tfidf_local,0.10677
+13,tfidf_account,0.10644
+14,CWE-434,0.10098
+15,tfidf_earlier,0.09912

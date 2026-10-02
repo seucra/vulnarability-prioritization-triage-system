@@ -1,0 +1,3 @@
+model,exp_b2_prauc_publication_time,exp_b1_prauc_retrospective_epss,absolute_delta,inflation_multiplier
+Logistic Regression,0.02077,0.29481,0.27404,14.19
+XGBoost Classifier,0.02884,0.33153,0.30269,11.5

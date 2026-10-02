@@ -1,0 +1,5 @@
+tier_name,asset_criticality_x4,spearman_rho,kendall_tau,top_100_jaccard_overlap,top_1000_jaccard_overlap,linear_top_100_kev_count,nonlinear_top_100_kev_count,linear_top_1000_kev_count,nonlinear_top_1000_kev_count
+Tier 1 (Low Criticality),0.25,0.9962,0.9356,0.005,0.182,100,3,1000,315
+Tier 2 (Medium Criticality),0.5,0.9962,0.9356,0.005,0.182,100,3,1000,315
+Tier 3 (High Criticality),0.75,0.9962,0.9356,0.005,0.182,100,3,1000,315
+Tier 4 (Critical Infrastructure),1.0,0.9962,0.9356,0.005,0.182,100,3,1000,315

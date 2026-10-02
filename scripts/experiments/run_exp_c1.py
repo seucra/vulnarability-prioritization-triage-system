@@ -17,8 +17,10 @@ Nonlinear Interactive Decision Surface:
 Outputs: data/experiments/phase3/exp_c1/metrics.json
 """
 
+import argparse
 import json
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -27,8 +29,7 @@ from scipy.stats import spearmanr, kendalltau
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 PROCESSED_DIR = REPO_ROOT / "data" / "processed"
-OUTPUT_DIR = REPO_ROOT / "data" / "experiments" / "phase3" / "exp_c1"
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+DEFAULT_OUTPUT_DIR = REPO_ROOT / "data" / "experiments" / "phase3_corrected" / "exp_c1"
 
 
 def load_data():
@@ -71,7 +72,10 @@ def calculate_nonlinear_score(x1, x2, x3, x4, alpha=1.0, beta=1.5):
     return x4 * risk_core
 
 
-def run_exp_c1():
+def run_exp_c1(output_dir: Optional[Path] = None):
+    if output_dir is None:
+        output_dir = DEFAULT_OUTPUT_DIR
+    output_dir.mkdir(parents=True, exist_ok=True)
     df = load_data()
     
     x1 = (df["cvss_v31_base_score"] / 10.0).values
@@ -96,8 +100,9 @@ def run_exp_c1():
         s_lin = calculate_linear_score(x1, x2, x3, x4_val, w=(0.25, 0.25, 0.25, 0.25))
         s_nonlin = calculate_nonlinear_score(x1, x2, x3, x4_val, alpha=1.0, beta=1.5)
         
-        # Store for export
-        tier_key = tier_name.split()[0].lower()
+        # Store for export with unique tier keys (fixes collision bug)
+        tier_num = tier_name.split()[1]
+        tier_key = f"tier_{tier_num}"
         rank_export_dict[f"score_lin_{tier_key}"] = s_lin
         rank_export_dict[f"score_nonlin_{tier_key}"] = s_nonlin
         
@@ -159,13 +164,21 @@ def run_exp_c1():
     }
     
     rank_export_df = pd.DataFrame(rank_export_dict)
-    rank_export_df.to_parquet(OUTPUT_DIR / "simulation_rankings.parquet", index=False)
+    rank_export_df.to_parquet(output_dir / "simulation_rankings.parquet", index=False)
     
-    with open(OUTPUT_DIR / "metrics.json", "w") as f:
+    with open(output_dir / "metrics.json", "w") as f:
         json.dump(results, f, indent=2)
         
-    print(f"\nEXP-C1 complete. Metrics saved to {OUTPUT_DIR / 'metrics.json'}")
+    print(f"\nEXP-C1 complete. Metrics saved to {output_dir / 'metrics.json'}")
 
 
 if __name__ == "__main__":
-    run_exp_c1()
+    parser = argparse.ArgumentParser(description="EXP-C1 Multi-Criteria Prioritization Simulation")
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=DEFAULT_OUTPUT_DIR,
+        help="Directory to save experimental outputs (defaults to phase3_corrected/exp_c1 to preserve baseline)",
+    )
+    args = parser.parse_args()
+    run_exp_c1(output_dir=args.output_dir)

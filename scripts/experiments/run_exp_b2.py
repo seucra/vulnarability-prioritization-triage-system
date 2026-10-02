@@ -1,6 +1,6 @@
 """
-Phase 3 EXP-B2: KEV Exploitation Prediction Without EPSS (Primary KEV Experiment)
-Repository: wdl-vuln-prioritization
+Phase 3 EXP-B2: KEV Exploitation Prediction Without EPSS (Corrected Preprocessing Pipeline)
+Repository: seucra/vulnarability-prioritization-triage-system
 
 Prediction Point: CVE Publication / Initial Triage Time.
 Excludes EPSS snapshot, CVSS components, date_added, last_modified.
@@ -10,38 +10,39 @@ Temporal Split:
 - VALIDATION: 2023–2024
 - TEST: 2025–2026 (Evaluated ONCE after model selection freeze)
 
-Models:
-- B2-Baseline: Logistic Regression (class_weight='balanced')
-- B2-Nonlinear: XGBoost Classifier (scale_pos_weight tuned)
+Leakage-Safe Preprocessing:
+- TF-IDF and CWE feature selection are fit strictly on TRAIN during model selection/tuning.
+- Preprocessor is refitted strictly on TRAIN + VALIDATION before final test set inference.
+- Test partition is transformed using fitted preprocessor without refitting.
 
-Outputs: data/experiments/phase3/exp_b2/metrics.json
+Outputs: metrics.json, test_predictions.parquet, model.xgb, vectorizer.joblib, feature_names.json
 """
 
+import argparse
 import json
-import os
 import time
 from pathlib import Path
+from typing import Optional
 
+import joblib
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
-from scipy.sparse import hstack, csr_matrix
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     average_precision_score,
     roc_auc_score,
     precision_recall_curve,
     f1_score,
-    confusion_matrix,
 )
 import xgboost as xgb
+
+from src.features.preprocessing import LeakageSafePreprocessor
 
 RANDOM_SEED = 42
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 PROCESSED_DIR = REPO_ROOT / "data" / "processed"
-OUTPUT_DIR = REPO_ROOT / "data" / "experiments" / "phase3" / "exp_b2"
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+DEFAULT_OUTPUT_DIR = REPO_ROOT / "data" / "experiments" / "phase3_corrected" / "exp_b2"
 
 
 def load_data():
@@ -53,167 +54,123 @@ def load_data():
 
     kev_set = set(kev["cve_id"])
     vulns["is_kev"] = vulns["cve_id"].isin(kev_set).astype(int)
-    
-    print(f"Total Canonical CVEs: {len(vulns):,}, KEV Positive: {vulns['is_kev'].sum():,} ({vulns['is_kev'].mean()*100:.4f}%)")
+
+    print(
+        f"Total Canonical CVEs: {len(vulns):,}, KEV Positive: {vulns['is_kev'].sum():,} "
+        f"({vulns['is_kev'].mean()*100:.4f}%)"
+    )
     return vulns, cwe, cpe
 
 
-def build_features(df, cwe, cpe):
-    print("Building publication-time features for EXP-B2...")
-    
-    # 1. Text Features (TF-IDF on description_en)
-    tfidf = TfidfVectorizer(
-        max_features=500,
-        stop_words="english",
-        ngram_range=(1, 2),
-        sublinear_tf=True,
-    )
-    desc_text = df["description_en"].fillna("")
-    X_text = tfidf.fit_transform(desc_text)
-    
-    # 2. CWE Features
-    cwe_counts = cwe.groupby("cve_id").size().rename("cwe_count")
-    semantic_cwe_counts = cwe[cwe["is_semantic_cwe"]].groupby("cve_id").size().rename("semantic_cwe_count")
-    
-    top_20_cwes = cwe[cwe["is_semantic_cwe"]]["cwe_id"].value_counts().head(20).index.tolist()
-    cwe_top20_df = cwe[cwe["cwe_id"].isin(top_20_cwes)].groupby(["cve_id", "cwe_id"]).size().unstack(fill_value=0)
-    cwe_top20_df = (cwe_top20_df > 0).astype(int)
-    
-    # 3. CPE Features
-    cpe_counts = cpe.groupby("cve_id").size().rename("cpe_count")
-    cpe_parts = cpe.groupby(["cve_id", "part"]).size().unstack(fill_value=0)
-    cpe_parts.columns = [f"cpe_part_{col}" for col in cpe_parts.columns]
-    
-    vendor_counts = cpe.groupby("cve_id")["vendor"].nunique().rename("vendor_count")
-    product_counts = cpe.groupby("cve_id")["product"].nunique().rename("product_count")
-    
-    # Merge tabular features into df
-    feat_df = pd.DataFrame(index=df["cve_id"])
-    feat_df["has_cwe"] = df["has_cwe"].astype(int).values
-    feat_df["has_cpe_configuration"] = df["has_cpe_configuration"].astype(int).values
-    
-    feat_df = feat_df.join(cwe_counts, how="left").fillna({"cwe_count": 0})
-    feat_df = feat_df.join(semantic_cwe_counts, how="left").fillna({"semantic_cwe_count": 0})
-    feat_df = feat_df.join(cwe_top20_df, how="left").fillna(0)
-    
-    feat_df = feat_df.join(cpe_counts, how="left").fillna({"cpe_count": 0})
-    feat_df = feat_df.join(cpe_parts, how="left").fillna(0)
-    feat_df = feat_df.join(vendor_counts, how="left").fillna({"vendor_count": 0})
-    feat_df = feat_df.join(product_counts, how="left").fillna({"product_count": 0})
-    
-    # Publication month
-    pub_dt = pd.to_datetime(df["published"], errors="coerce")
-    feat_df["pub_month"] = pub_dt.dt.month.fillna(1).values
-    
-    X_num = csr_matrix(feat_df.values.astype(np.float32))
-    
-    # Combine TF-IDF and tabular features
-    X_all = hstack([X_text, X_num]).tocsr()
-    y_all = df["is_kev"].values.astype(int)
-    years_all = df["publication_year"].values
-    
-    feature_names = [f"tfidf_{w}" for w in tfidf.get_feature_names_out()] + list(feat_df.columns)
-    print(f"Combined feature matrix shape: {X_all.shape}")
-    
-    return X_all, y_all, years_all, feature_names
+def eval_b2_metrics(y_true, y_prob):
+    prauc = float(average_precision_score(y_true, y_prob))
+    rocauc = float(roc_auc_score(y_true, y_prob))
 
+    # Top-500 metrics
+    top_500_idx = np.argsort(y_prob)[::-1][:500]
+    p_at_500 = float(y_true[top_500_idx].sum() / 500.0)
+    r_at_500 = float(y_true[top_500_idx].sum() / max(1, y_true.sum()))
 
-def eval_b2_metrics(y_true, y_prob, k_val=500):
-    pr_auc = float(average_precision_score(y_true, y_prob))
-    roc_auc = float(roc_auc_score(y_true, y_prob))
-    
-    # Precision@K and Recall@K
-    top_k_idx = np.argsort(y_prob)[::-1][:k_val]
-    top_k_true = y_true[top_k_idx]
-    
-    prec_at_k = float(top_k_true.sum() / k_val)
-    rec_at_k = float(top_k_true.sum() / y_true.sum()) if y_true.sum() > 0 else 0.0
-    
-    # Best F1 threshold
+    # Optimal F1 threshold
     precisions, recalls, thresholds = precision_recall_curve(y_true, y_prob)
-    f1_scores = 2 * (precisions * recalls) / (precisions + recalls + 1e-10)
-    best_idx = np.argmax(f1_scores)
-    best_f1 = float(f1_scores[best_idx])
-    best_thresh = float(thresholds[best_idx]) if best_idx < len(thresholds) else 0.5
-    
+    f1_scores = np.where(
+        (precisions + recalls) > 0,
+        2 * (precisions * recalls) / (precisions + recalls),
+        0.0,
+    )
+    best_f1_idx = np.argmax(f1_scores)
+    max_f1 = float(f1_scores[best_f1_idx])
+    opt_thresh = float(thresholds[best_f1_idx]) if best_f1_idx < len(thresholds) else 0.5
+
     return {
-        "pr_auc": round(pr_auc, 5),
-        "roc_auc": round(roc_auc, 5),
-        f"precision_at_{k_val}": round(prec_at_k, 5),
-        f"recall_at_{k_val}": round(rec_at_k, 5),
-        "max_f1": round(best_f1, 5),
-        "optimal_f1_threshold": round(best_thresh, 5),
+        "pr_auc": round(prauc, 5),
+        "roc_auc": round(rocauc, 5),
+        "precision_at_500": round(p_at_500, 4),
+        "recall_at_500": round(r_at_500, 5),
+        "max_f1": round(max_f1, 5),
+        "optimal_f1_threshold": round(opt_thresh, 5),
     }
 
 
-def run_exp_b2():
+def run_exp_b2(output_dir: Optional[Path] = None):
+    if output_dir is None:
+        output_dir = DEFAULT_OUTPUT_DIR
+    output_dir.mkdir(parents=True, exist_ok=True)
+
     df, cwe, cpe = load_data()
-    X_all, y_all, years_all, feature_names = build_features(df, cwe, cpe)
-    
-    # Temporal Partitions
-    train_idx = np.where(years_all <= 2022)[0]
-    val_idx = np.where((years_all >= 2023) & (years_all <= 2024))[0]
-    test_idx = np.where(years_all >= 2025)[0]
-    train_val_idx = np.where(years_all <= 2024)[0]
-    
-    print(f"Partition Sizes -> Train: {len(train_idx):,} (KEV: {y_all[train_idx].sum()}), Val: {len(val_idx):,} (KEV: {y_all[val_idx].sum()}), Test: {len(test_idx):,} (KEV: {y_all[test_idx].sum()})")
-    
-    X_train, y_train = X_all[train_idx], y_all[train_idx]
-    X_val, y_val = X_all[val_idx], y_all[val_idx]
-    X_test, y_test = X_all[test_idx], y_all[test_idx]
-    X_train_val, y_train_val = X_all[train_val_idx], y_all[train_val_idx]
-    
-    # --- 1. B2-Baseline (Logistic Regression) ---
+
+    # 1. Temporal Partitions
+    years_all = df["publication_year"].values
+    df_train = df[years_all <= 2022].copy()
+    df_val = df[(years_all >= 2023) & (years_all <= 2024)].copy()
+    df_test = df[years_all >= 2025].copy()
+    df_train_val = df[years_all <= 2024].copy()
+
+    y_train = df_train["is_kev"].values.astype(int)
+    y_val = df_val["is_kev"].values.astype(int)
+    y_test = df_test["is_kev"].values.astype(int)
+    y_train_val = df_train_val["is_kev"].values.astype(int)
+
+    print(
+        f"Partition Sizes -> Train: {len(df_train):,} ({y_train.sum()} KEV), "
+        f"Val: {len(df_val):,} ({y_val.sum()} KEV), "
+        f"Test: {len(df_test):,} ({y_test.sum()} KEV), "
+        f"Train+Val Refit: {len(df_train_val):,} ({y_train_val.sum()} KEV)"
+    )
+
+    # 2. Model Selection Phase: Fit preprocessor strictly on TRAIN (<= 2022)
+    print("\n--- Fitting LeakageSafePreprocessor on TRAIN partition (<= 2022) ---")
+    preprocessor_tune = LeakageSafePreprocessor(include_epss=False, random_state=RANDOM_SEED)
+    preprocessor_tune.fit(df_train, cwe)
+    X_train = preprocessor_tune.transform(df_train, cwe, cpe)
+    X_val = preprocessor_tune.transform(df_val, cwe, cpe)
+
+    print(f"X_train shape: {X_train.shape}, X_val shape: {X_val.shape}")
+
+    # --- Tuning B2-Baseline (Logistic Regression) ---
     print("\n--- Tuning B2-Baseline (Logistic Regression) ---")
     c_candidates = [0.01, 0.1, 1.0, 10.0]
+    log_search_results = {}
     best_log_c = None
     best_log_val_prauc = -1.0
-    log_search_results = {}
-    
-    for c in c_candidates:
-        model = LogisticRegression(C=c, class_weight="balanced", random_state=RANDOM_SEED, max_iter=1000)
+
+    for c_val in c_candidates:
+        model = LogisticRegression(
+            C=c_val,
+            class_weight="balanced",
+            max_iter=1000,
+            random_state=RANDOM_SEED,
+            n_jobs=-1,
+        )
         model.fit(X_train, y_train)
         val_prob = model.predict_proba(X_val)[:, 1]
         val_prauc = average_precision_score(y_val, val_prob)
-        log_search_results[str(c)] = round(float(val_prauc), 5)
-        print(f"  Logistic Regression (C={c}): Val PR-AUC = {val_prauc:.5f}")
-        
+        log_search_results[str(c_val)] = round(float(val_prauc), 5)
+        print(f"  LogReg (C={c_val}): Val PR-AUC = {val_prauc:.5f}")
+
         if val_prauc > best_log_val_prauc:
             best_log_val_prauc = val_prauc
-            best_log_c = c
-            
-    print(f"Selected Best Logistic Regression C: {best_log_c} (Val PR-AUC: {best_log_val_prauc:.5f})")
-    
-    # Refit Logistic Regression on TRAIN + VALIDATION
-    final_log = LogisticRegression(C=best_log_c, class_weight="balanced", random_state=RANDOM_SEED, max_iter=1000)
-    final_log.fit(X_train_val, y_train_val)
-    
-    train_prob_l = final_log.predict_proba(X_train)[:, 1]
-    val_prob_l = final_log.predict_proba(X_val)[:, 1]
-    test_prob_l = final_log.predict_proba(X_test)[:, 1]
-    
-    log_metrics = {
-        "best_hyperparameters": {"C": best_log_c},
-        "search_grid_val_prauc": log_search_results,
-        "train": eval_b2_metrics(y_train, train_prob_l),
-        "validation": eval_b2_metrics(y_val, val_prob_l),
-        "test": eval_b2_metrics(y_test, test_prob_l),
-    }
-    
-    # --- 2. B2-Nonlinear (XGBoost Classifier) ---
+            best_log_c = c_val
+
+    print(f"Selected Best LogReg C: {best_log_c} (Val PR-AUC: {best_log_val_prauc:.5f})")
+
+    # --- Tuning B2-Nonlinear (XGBoost Classifier) ---
     print("\n--- Tuning B2-Nonlinear (XGBoost Classifier) ---")
     param_grid = [
         {"scale_pos_weight": 20, "max_depth": 4, "n_estimators": 100, "learning_rate": 0.1},
         {"scale_pos_weight": 50, "max_depth": 6, "n_estimators": 150, "learning_rate": 0.08},
         {"scale_pos_weight": 100, "max_depth": 6, "n_estimators": 200, "learning_rate": 0.05},
     ]
-    
+
     best_xgb_params = None
     best_xgb_val_prauc = -1.0
     xgb_search_results = {}
-    
+
     for params in param_grid:
-        param_str = f"spw={params['scale_pos_weight']}_depth={params['max_depth']}_n={params['n_estimators']}_lr={params['learning_rate']}"
+        param_str = (
+            f"spw={params['scale_pos_weight']}_depth={params['max_depth']}_"
+            f"n={params['n_estimators']}_lr={params['learning_rate']}"
+        )
         t0 = time.time()
         model = xgb.XGBClassifier(
             scale_pos_weight=params["scale_pos_weight"],
@@ -231,14 +188,50 @@ def run_exp_b2():
         elapsed = time.time() - t0
         xgb_search_results[param_str] = round(float(val_prauc), 5)
         print(f"  XGBoost ({param_str}): Val PR-AUC = {val_prauc:.5f} ({elapsed:.1f}s)")
-        
+
         if val_prauc > best_xgb_val_prauc:
             best_xgb_val_prauc = val_prauc
             best_xgb_params = params
-            
+
     print(f"Selected Best XGBoost params: {best_xgb_params} (Val PR-AUC: {best_xgb_val_prauc:.5f})")
-    
+
+    # 3. Final Test Evaluation Phase: Refit preprocessor on TRAIN + VALIDATION (<= 2024)
+    print("\n--- Refitting LeakageSafePreprocessor on TRAIN + VALIDATION (<= 2024) ---")
+    preprocessor_final = LeakageSafePreprocessor(include_epss=False, random_state=RANDOM_SEED)
+    preprocessor_final.fit(df_train_val, cwe)
+
+    X_train_val = preprocessor_final.transform(df_train_val, cwe, cpe)
+    X_train_eval = preprocessor_final.transform(df_train, cwe, cpe)
+    X_val_eval = preprocessor_final.transform(df_val, cwe, cpe)
+    X_test = preprocessor_final.transform(df_test, cwe, cpe)
+
+    print(f"X_train_val shape: {X_train_val.shape}, X_test shape: {X_test.shape}")
+
+    # Refit Logistic Regression on TRAIN + VALIDATION
+    print("\nFitting final Logistic Regression model...")
+    final_log = LogisticRegression(
+        C=best_log_c,
+        class_weight="balanced",
+        max_iter=1000,
+        random_state=RANDOM_SEED,
+        n_jobs=-1,
+    )
+    final_log.fit(X_train_val, y_train_val)
+
+    train_prob_l = final_log.predict_proba(X_train_eval)[:, 1]
+    val_prob_l = final_log.predict_proba(X_val_eval)[:, 1]
+    test_prob_l = final_log.predict_proba(X_test)[:, 1]
+
+    log_metrics = {
+        "best_hyperparameters": {"C": best_log_c},
+        "search_grid_val_prauc": log_search_results,
+        "train": eval_b2_metrics(y_train, train_prob_l),
+        "validation": eval_b2_metrics(y_val, val_prob_l),
+        "test": eval_b2_metrics(y_test, test_prob_l),
+    }
+
     # Refit XGBoost on TRAIN + VALIDATION
+    print("Fitting final XGBoost classifier...")
     final_xgb = xgb.XGBClassifier(
         scale_pos_weight=best_xgb_params["scale_pos_weight"],
         max_depth=best_xgb_params["max_depth"],
@@ -250,11 +243,11 @@ def run_exp_b2():
         eval_metric="logloss",
     )
     final_xgb.fit(X_train_val, y_train_val)
-    
-    train_prob_x = final_xgb.predict_proba(X_train)[:, 1]
-    val_prob_x = final_xgb.predict_proba(X_val)[:, 1]
+
+    train_prob_x = final_xgb.predict_proba(X_train_eval)[:, 1]
+    val_prob_x = final_xgb.predict_proba(X_val_eval)[:, 1]
     test_prob_x = final_xgb.predict_proba(X_test)[:, 1]
-    
+
     xgb_metrics = {
         "best_hyperparameters": best_xgb_params,
         "search_grid_val_prauc": xgb_search_results,
@@ -262,46 +255,62 @@ def run_exp_b2():
         "validation": eval_b2_metrics(y_val, val_prob_x),
         "test": eval_b2_metrics(y_test, test_prob_x),
     }
-    
+
     # Feature Importances
     importances = final_xgb.feature_importances_
     top_feat_idx = np.argsort(importances)[::-1][:20]
+    feature_names = preprocessor_final.feature_names
     top_features = {feature_names[i]: round(float(importances[i]), 5) for i in top_feat_idx}
-    
+
     results = {
         "experiment": "EXP-B2",
         "target": "is_kev",
         "prediction_point": "CVE Publication / Initial Triage Time (No EPSS, No CVSS components)",
+        "preprocessing_status": "CORRECTED (Inductive temporal fitting, no test leakage)",
         "dataset_cardinality": {
             "total": len(df),
-            "train": len(train_idx),
+            "train": len(df_train),
             "train_kev": int(y_train.sum()),
-            "validation": len(val_idx),
+            "validation": len(df_val),
             "val_kev": int(y_val.sum()),
-            "test": len(test_idx),
+            "test": len(df_test),
             "test_kev": int(y_test.sum()),
-            "train_val_refit": len(train_val_idx),
+            "train_val_refit": len(df_train_val),
             "train_val_kev": int(y_train_val.sum()),
         },
         "baseline_logistic_regression": log_metrics,
         "nonlinear_xgboost": xgb_metrics,
         "top_20_xgboost_feature_importances": top_features,
     }
-    
-    # Save predictions for plotting and SHAP
+
+    # Save artifacts
     pred_df = pd.DataFrame({
-        "cve_id": df.iloc[test_idx]["cve_id"].values,
+        "cve_id": df_test["cve_id"].values,
         "y_test_actual": y_test,
         "logistic_prob": test_prob_l,
         "xgboost_prob": test_prob_x,
     })
-    pred_df.to_parquet(OUTPUT_DIR / "test_predictions.parquet", index=False)
-    
-    with open(OUTPUT_DIR / "metrics.json", "w") as f:
+    pred_df.to_parquet(output_dir / "test_predictions.parquet", index=False)
+
+    with open(output_dir / "metrics.json", "w") as f:
         json.dump(results, f, indent=2)
-        
-    print(f"\nEXP-B2 complete. Metrics saved to {OUTPUT_DIR / 'metrics.json'}")
+
+    with open(output_dir / "feature_names.json", "w") as f:
+        json.dump(feature_names, f, indent=2)
+
+    joblib.dump(preprocessor_final.tfidf, output_dir / "vectorizer.joblib")
+    final_xgb.save_model(output_dir / "model.xgb")
+
+    print(f"\nEXP-B2 complete. Artifacts saved to {output_dir}")
 
 
 if __name__ == "__main__":
-    run_exp_b2()
+    parser = argparse.ArgumentParser(description="EXP-B2 KEV Exploitation Prediction (Corrected Preprocessing)")
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=DEFAULT_OUTPUT_DIR,
+        help="Directory to save experimental outputs (defaults to phase3_corrected/exp_b2 to preserve baseline)",
+    )
+    args = parser.parse_args()
+    run_exp_b2(output_dir=args.output_dir)
