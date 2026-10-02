@@ -24,7 +24,7 @@ export function renderDocsView(containerEl) {
         {
             id: "api-spec",
             title: "REST API Endpoint Specification",
-            path: "docs/architecture/API.md",
+            path: "docs/API.md",
             category: "API & Integration",
             status: "Available",
             description: "Complete REST API reference for /api/v1 endpoints including authentication, vulnerabilities search, CVE detail, ML predictions, prioritization scoring, SHAP explainability, and provenance.",
@@ -63,7 +63,7 @@ export function renderDocsView(containerEl) {
         {
             id: "backend-arch",
             title: "System Architecture & Data Layer",
-            path: "docs/architecture/PHASE_4_BACKEND_ARCHITECTURE.md",
+            path: "docs/ARCHITECTURE.md",
             category: "System Architecture",
             status: "Available",
             description: "Detailed architecture overview of the FastAPI application layer, DuckDB read-only query engine, serialized XGBoost model loading, SQLite auth database, and Vanilla JS SPA frontend.",

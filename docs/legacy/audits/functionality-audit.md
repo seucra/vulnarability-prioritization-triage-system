@@ -259,7 +259,7 @@ All **24 / 24 automated tests pass cleanly**.
 ## 7. Existing Documentation
 
 ### Existing Documentation Files:
-- [docs/architecture/API.md](file:///home/seucra/Runes/projects/research/vulnarability-prioritization-triage-system/docs/architecture/API.md): Complete OpenAPI REST API endpoint specifications.
+- [docs/API.md](file:///home/seucra/Runes/projects/research/vulnarability-prioritization-triage-system/docs/API.md): Complete OpenAPI REST API endpoint specifications.
 - [docs/architecture/PHASE_4_BACKEND_ARCHITECTURE.md](file:///home/seucra/Runes/projects/research/vulnarability-prioritization-triage-system/docs/architecture/PHASE_4_BACKEND_ARCHITECTURE.md): Phase 4 backend system architecture document.
 - [docs/research/DATA_MANIFEST.md](file:///home/seucra/Runes/projects/research/vulnarability-prioritization-triage-system/docs/research/DATA_MANIFEST.md): Raw dataset provenance and SHA-256 checksums.
 - [docs/research/PROCESSED_DATA_SCHEMA.md](file:///home/seucra/Runes/projects/research/vulnarability-prioritization-triage-system/docs/research/PROCESSED_DATA_SCHEMA.md): Schema definitions for processed Parquet files.

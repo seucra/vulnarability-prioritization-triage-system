@@ -110,7 +110,7 @@ The examination panel typically consists of:
 - **Objective**: Proactively address the 0.3845 vs. 0.02884 documentation discrepancy.
 - **Visual**: Discrepancy reconciliation table showing documentation note vs. serialized artifact.
 - **Speaking Notes**: Address the audit finding openly: `docs/final-repo-state.md` contained a draft note of 0.3845 mislabeled as "Text+Meta+EPSS". The authoritative, serialized result for publication-time classification is PR-AUC = 0.02884.
-- **Repository Evidence**: `data/experiments/phase3/exp_b2/metrics.json`, `docs/architecture/API.md:146`.
+- **Repository Evidence**: `data/experiments/phase3/exp_b2/metrics.json`, `docs/API.md:146`.
 
 ### Slide 10: EXP-C1: Multi-Criteria Prioritization Surfaces
 - **Objective**: Explain the mathematics of linear baseline vs. non-linear surface.

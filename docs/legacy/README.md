@@ -9,12 +9,12 @@
 > **Do NOT cite files in this directory for authoritative system requirements, architecture, or research metrics.**
 > 
 > For active, authoritative single-source-of-truth documentation, refer to:
-> - Product Requirements: [`docs/prd/PRD.md`](../prd/PRD.md)
-> - UI/UX & Design System: [`docs/design/DESIGN.md`](../design/DESIGN.md)
-> - System Architecture & Deployment: [`docs/architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md)
-> - REST API Reference: [`docs/architecture/API.md`](../architecture/API.md)
-> - Institutional Memory & Viva Preparation: [`docs/memory/MEMORY.md`](../memory/MEMORY.md)
-> - System Rules, Invariants & Non-Claims: [`docs/rules/RULES.md`](../rules/RULES.md)
+> - Product Requirements: [`docs/PRD.md`](../PRD.md)
+> - UI/UX & Design System: [`docs/DESIGN.md`](../DESIGN.md)
+> - System Architecture & Deployment: [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md)
+> - REST API Reference: [`docs/API.md`](../API.md)
+> - Institutional Memory & Viva Preparation: [`docs/MEMORY.md`](../MEMORY.md)
+> - System Rules, Invariants & Non-Claims: [`docs/RULES.md`](../RULES.md)
 > - Experimental Protocol & Empirical Results: [`docs/research/EXPERIMENTAL_PROTOCOL_AND_RESULTS.md`](../research/EXPERIMENTAL_PROTOCOL_AND_RESULTS.md)
 > - IEEE Research Evidence Audit: [`docs/research/EVIDENCE_AUDIT.md`](../research/EVIDENCE_AUDIT.md)
 > - Research Data Manifest: [`docs/research/DATA_MANIFEST.md`](../research/DATA_MANIFEST.md)
@@ -47,7 +47,7 @@ Granular Phase 0 through Phase 3 research logs:
 - `FIGURE_NUMERICAL_DATA.md`: Intermediate figure plotting coordinates.
 
 ### 3. `architecture/`
-Component-level architecture notes merged into [`docs/architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md):
+Component-level architecture notes merged into [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md):
 - `AUTHENTICATION_AND_RBAC.md`: PBKDF2 and JWT authentication design.
 - `PHASE_4_BACKEND_ARCHITECTURE.md`: DuckDB connection lifecycle and FastAPI service design.
 - `ROLE_DASHBOARDS_AND_WORKFLOWS.md`: Frontend persona routing and view switching.

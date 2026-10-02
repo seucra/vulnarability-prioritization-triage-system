@@ -70,7 +70,7 @@ To eliminate discrepancies between historical drafts and verified serialized art
     - `average_precision_score`: **0.02884** (0.029)
     - Trapezoidal `auc(r, p)`: **0.02722** (0.027)
 - **Discredited 0.3845 Typo**:
-  Never cite 0.3845 as the PR-AUC of EXP-B2. This was an ungrounded typo originating from an illustrative mock response in `docs/architecture/API.md:146` (`0.38451`). The verified serialized artifact value is **0.02884**.
+  Never cite 0.3845 as the PR-AUC of EXP-B2. This was an ungrounded typo originating from an illustrative mock response in `docs/API.md:146` (`0.38451`). The verified serialized artifact value is **0.02884**.
 - **EXP-C1 Simulation Invariance Rule**:
   Because asset criticality ($x_4$) was applied homogeneously to all CVEs in each simulation tier run, scalar addition/multiplication preserves exact ranking. Therefore, Spearman $\rho = 0.9962$ and Kendall $\tau = 0.9356$ are identical across all four tiers. Never claim tiers had diverging rank correlation without heterogeneous asset weighting.
 - **EXP-C1 Parquet Loop Key Collision Rule**:
@@ -112,11 +112,11 @@ To eliminate discrepancies between historical drafts and verified serialized art
 ## 6. Documentation & Repository Hygiene Standards
 
 1. **Single Source of Truth Structure**:
-   - `docs/prd/PRD.md`: All functional and non-functional requirements.
-   - `docs/design/DESIGN.md`: All UI tokens, styling, layouts, and accessibility specs.
-   - `docs/architecture/ARCHITECTURE.md`: All backend architectures, data models, network topologies.
-   - `docs/memory/MEMORY.md`: Chronological history, technical decisions, and viva defense cheat sheet.
-   - `docs/rules/RULES.md`: All invariants, non-claims, and metric citation standards.
+   - `docs/PRD.md`: All functional and non-functional requirements.
+   - `docs/DESIGN.md`: All UI tokens, styling, layouts, and accessibility specs.
+   - `docs/ARCHITECTURE.md`: All backend architectures, data models, network topologies.
+   - `docs/MEMORY.md`: Chronological history, technical decisions, and viva defense cheat sheet.
+   - `docs/RULES.md`: All invariants, non-claims, and metric citation standards.
    - `docs/research/`: Authoritative research experiment protocols, evidence audit, and manifests.
    - `docs/legacy/`: Archived snapshots and superseded drafts. Never cite files in `docs/legacy/` for current system state.
 2. **Zero Modification to Tested Executables**:

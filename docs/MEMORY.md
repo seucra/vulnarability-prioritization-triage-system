@@ -123,7 +123,7 @@ Phase 4 operationalized the research findings:
 
 ### 4.3 Provenance Resolution of the 0.3845 PR-AUC Citation
 - **Audit Fact**: In `docs/final-repo-state.md:160`, an entry stated: `EXP-B2 Metrics: Test ROC-AUC = 0.9412, PR-AUC = 0.3845, F1 = 0.4120`.
-- **Authoritative Resolution**: This note mislabeled the model as "Text + Meta + EPSS" and matched an example prediction probability in `docs/architecture/API.md:146` (`"predicted_kev_probability": 0.38451`). The physical serialized model artifact in `data/experiments/phase3/exp_b2/metrics.json` definitively records Test PR-AUC = **0.02884**. The value 0.3845 is formally discredited.
+- **Authoritative Resolution**: This note mislabeled the model as "Text + Meta + EPSS" and matched an example prediction probability in `docs/API.md:146` (`"predicted_kev_probability": 0.38451`). The physical serialized model artifact in `data/experiments/phase3/exp_b2/metrics.json` definitively records Test PR-AUC = **0.02884**. The value 0.3845 is formally discredited.
 
 ---
 

@@ -327,13 +327,13 @@ Documentation is organized into single-source-of-truth modules:
   * [docs/research/EVIDENCE_AUDIT.md](docs/research/EVIDENCE_AUDIT.md) — Comprehensive experiment audit and verification log.
   * [docs/research/DATA_MANIFEST.md](docs/research/DATA_MANIFEST.md) — Cryptographic hashes and dataset provenance.
 * **System Architecture & Design**:
-  * [docs/architecture/ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md) — Full technical architecture, DuckDB engine, and security specs.
-  * [docs/architecture/API.md](docs/architecture/API.md) — Complete REST API reference, request/response schemas, and error codes.
-  * [docs/design/DESIGN.md](docs/design/DESIGN.md) — Design system tokens, color palettes, and typography specifications.
-  * [docs/prd/PRD.md](docs/prd/PRD.md) — Product requirements, personas, scope, and acceptance criteria.
+  * [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — Full technical architecture, DuckDB engine, and security specs.
+  * [docs/API.md](docs/API.md) — Complete REST API reference, request/response schemas, and error codes.
+  * [docs/DESIGN.md](docs/DESIGN.md) — Design system tokens, color palettes, and typography specifications.
+  * [docs/PRD.md](docs/PRD.md) — Product requirements, personas, scope, and acceptance criteria.
 * **Institutional Memory & Invariants**:
-  * [docs/memory/MEMORY.md](docs/memory/MEMORY.md) — Chronological history, architectural decisions, and project defense model.
-  * [docs/rules/RULES.md](docs/rules/RULES.md) — System invariants, cardinal non-claims, and coding standards.
+  * [docs/MEMORY.md](docs/MEMORY.md) — Chronological history, architectural decisions, and project defense model.
+  * [docs/RULES.md](docs/RULES.md) — System invariants, cardinal non-claims, and coding standards.
   * [docs/legacy/README.md](docs/legacy/README.md) — Preserved historical notes, phase reports, and audit logs.
 
 ---

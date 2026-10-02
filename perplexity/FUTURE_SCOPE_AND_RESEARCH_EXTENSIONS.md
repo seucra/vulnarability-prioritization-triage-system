@@ -66,7 +66,7 @@ These immediate actions address specific documentation discrepancies, missing an
 ### 4.1 Formal Deprecation of the Discrepant B2 PR-AUC Value (0.3845)
 - **Status**: *Immediate Action Required*
 - **Problem**: An unverified value of `PR-AUC = 0.3845` appeared in `docs/final-repo-state.md:160` mislabeled as "EXP-B2 (Text+Meta+EPSS)", while the serialized artifact `data/experiments/phase3/exp_b2/metrics.json` definitively records `PR-AUC = 0.02884`.
-- **Action**: Update all legacy research notes to explicitly state that 0.3845 was an unverified draft entry conflated with an example API output string (`"predicted_kev_probability": 0.38451` in `docs/architecture/API.md:146`). Reaffirm that **0.02884** is the sole verified, authoritative test PR-AUC for publication-time KEV classification.
+- **Action**: Update all legacy research notes to explicitly state that 0.3845 was an unverified draft entry conflated with an example API output string (`"predicted_kev_probability": 0.38451` in `docs/API.md:146`). Reaffirm that **0.02884** is the sole verified, authoritative test PR-AUC for publication-time KEV classification.
 
 ### 4.2 Cross-Experiment Population Alignment and Row-Level Join Matrix
 - **Status**: *Proposed (Near-Term)*

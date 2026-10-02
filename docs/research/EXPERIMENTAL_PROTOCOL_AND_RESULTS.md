@@ -116,7 +116,7 @@ All models were evaluated on the held-out temporal 2024 test set (24,196 vulnera
 ### 5.2 Critical Experimental Insights
 1. **EXP-B1 Dominance**: XGBoost with engineered feature interactions achieves a PR-AUC of **0.3315** (AP) / **0.3304** (trapezoidal), outperforming the baseline logistic regression by +16.0% relative improvement and capturing **84.78%** of all 2024 zero-day exploits within the top 5% of inspected vulnerabilities.
 2. **The `epss_percentile` Sensitivity Effect (EXP-B2)**: Removing `epss_percentile` causes PR-AUC to plunge from 0.3315 to 0.0288. Because raw EPSS probabilities are heavily concentrated near zero ($>85\%$ of CVEs have EPSS $<0.001$), gradient boosted trees struggle to partition positive cases without the non-linear rank transformation provided by percentiles.
-3. **Discrediting Historical 0.3845 Typo**: Historical drafts contained a stray claim of "0.3845 PR-AUC" for EXP-B2. This was a transcription typo traced to an illustrative example in `docs/architecture/API.md:146` (`0.38451`). The verified, serialized EXP-B2 PR-AUC is **0.02884**.
+3. **Discrediting Historical 0.3845 Typo**: Historical drafts contained a stray claim of "0.3845 PR-AUC" for EXP-B2. This was a transcription typo traced to an illustrative example in `docs/API.md:146` (`0.38451`). The verified, serialized EXP-B2 PR-AUC is **0.02884**.
 
 ---
 

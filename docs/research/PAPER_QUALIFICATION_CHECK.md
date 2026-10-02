@@ -171,7 +171,7 @@ Based on the evidence audit, the paper must be structured with clear demarcation
 | **Post-Hoc SHAP TreeExplainer Attributions** | **EXPLORATORY / QUALIFIED** | `data/experiments/phase3/shap/` | Present as statistical ensemble feature attributions (identifying unauthenticated access and CWE-22), explicitly disclaiming causal exploit mechanics. |
 | **Enterprise Workload Reduction (80–95%)** | **EXCLUDE ENTIRELY** | External Literature | No enterprise ticketing, patching, or telemetry logs exist in this repository. Cite only as related work motivation. |
 | **Breach / Attack Prevention Claims** | **EXCLUDE ENTIRELY** | None | System is a decision-support prototype, not an active network mitigation or endpoint detection engine. |
-| **PR-AUC = 0.3845** | **EXCLUDE ENTIRELY** | `docs/architecture/API.md:146` | Formally discredited as an illustrative API response typo. Serialized truth is 0.02884. |
+| **PR-AUC = 0.3845** | **EXCLUDE ENTIRELY** | `docs/API.md:146` | Formally discredited as an illustrative API response typo. Serialized truth is 0.02884. |
 
 ---
 

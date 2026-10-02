@@ -127,7 +127,7 @@ The system defines three core operational personas mapped to Role-Based Access C
 | **Test Coverage** | The repository shall maintain 100% pass rate across all unit, integration, and invariant test suites. | Pytest suite: 46/46 passed; Professor suite: 15/15 passed. |
 | **Reproducibility** | Clean rebuilds of processed Parquet data from raw sources shall yield zero logical row differences. | Deterministic rebuild check in `scripts/compare_rebuilds.py`. |
 | **Authentication** | Passwords shall be hashed using PBKDF2-HMAC-SHA256 with 600,000 iterations; JWT tokens shall use HS256 signatures with 24-hour expiration. | Cryptographic verification in `tests/test_auth_rbac.py`. |
-| **Accessibility & UX** | Web interface colors shall meet WCAG AA contrast standards ($\ge 4.5:1$ ratio); layout shall be fully responsive across mobile, tablet, and 1440px desktop. | Design audit in `docs/design/DESIGN.md`. |
+| **Accessibility & UX** | Web interface colors shall meet WCAG AA contrast standards ($\ge 4.5:1$ ratio); layout shall be fully responsive across mobile, tablet, and 1440px desktop. | Design audit in `docs/DESIGN.md`. |
 
 ---
 

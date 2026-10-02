@@ -34,7 +34,7 @@ This audit establishes the empirical ground truth for the Vulnerability Prioriti
 
 5. **Formal Resolution of the 0.3845 PR-AUC Discrepancy**:
    - An unverified value of `PR-AUC = 0.3845` appeared in `docs/final-repo-state.md:160` erroneously mislabeled as "EXP-B2 (Text+Meta+EPSS)".
-   - Audit confirms that **no serialized model or metrics artifact in `data/experiments/phase3/` contains 0.3845 as a PR-AUC**. The serialized ground truth in `data/experiments/phase3/exp_b2/metrics.json` is definitively **0.02884**. The string "0.38451" originated as an example prediction probability in `docs/architecture/API.md:146`. The value 0.3845 is formally discredited.
+   - Audit confirms that **no serialized model or metrics artifact in `data/experiments/phase3/` contains 0.3845 as a PR-AUC**. The serialized ground truth in `data/experiments/phase3/exp_b2/metrics.json` is definitively **0.02884**. The string "0.38451" originated as an example prediction probability in `docs/API.md:146`. The value 0.3845 is formally discredited.
 
 6. **EXP-C1 (Multi-Criteria Prioritization Simulation)**:
    - Evaluated across 227,694 intersected CVEs possessing complete CVSS v3.1, EPSS, and KEV.
