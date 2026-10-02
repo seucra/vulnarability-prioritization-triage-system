@@ -1,5 +1,6 @@
 /**
  * Vulnerability Detail Slide-Over Drawer Component
+ * Visual Direction: Structured, editorial, research-grade contextual inspection
  * Repository: seucra/vulnarability-prioritization-triage-system
  */
 
@@ -7,26 +8,26 @@ import { state } from '../state.js';
 
 export function renderDetailModal(containerEl) {
     containerEl.innerHTML = `
-        <div class="drawer-backdrop" id="detail-backdrop">
+        <div class="drawer-backdrop" id="detail-backdrop" role="dialog" aria-modal="true" aria-labelledby="drawer-cve-id">
             <div class="drawer-panel">
                 <div class="drawer-header">
-                    <div>
+                    <div class="drawer-title-group">
                         <div class="drawer-title" id="drawer-cve-id">CVE Detail</div>
-                        <div style="font-size: 12px; color: var(--text-sub);" id="drawer-pub-date">Published Date</div>
+                        <div class="drawer-subtitle" id="drawer-pub-date">Published Date</div>
                     </div>
                     <div style="display: flex; gap: 8px;">
                         <button class="btn btn-outline btn-sm" id="btn-print-report" title="Generate printable vulnerability triage report">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                             Print Report
                         </button>
-                        <button class="btn btn-outline btn-sm" id="btn-close-drawer">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        <button class="btn btn-outline btn-sm" id="btn-close-drawer" aria-label="Close drawer">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                             Close
                         </button>
                     </div>
                 </div>
                 <div class="drawer-body" id="drawer-body-content">
-                    <!-- Dynamic content -->
+                    <!-- Loaded dynamically -->
                 </div>
             </div>
         </div>
@@ -47,6 +48,12 @@ export function renderDetailModal(containerEl) {
     });
     backdrop.addEventListener('click', (e) => {
         if (e.target === backdrop) closeDrawer();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && state.getState().selectedCveId) {
+            closeDrawer();
+        }
     });
 
     state.subscribe(s => {
@@ -70,7 +77,9 @@ function renderDrawerBody(containerEl, s) {
         body.innerHTML = `
             <div style="padding: 40px; text-align: center;">
                 <span class="loading-spinner"></span>
-                <p style="margin-top: 12px; color: var(--text-sub);">Retrieving canonical record for ${s.selectedCveId}...</p>
+                <p style="margin-top: 12px; font-size: 13px; color: var(--text-secondary);">
+                    Retrieving canonical record for ${escapeHtml(s.selectedCveId)}...
+                </p>
             </div>
         `;
         return;
@@ -79,7 +88,7 @@ function renderDrawerBody(containerEl, s) {
     if (s.detailError) {
         body.innerHTML = `
             <div class="error-banner">
-                <strong>Error fetching details:</strong> ${s.detailError}
+                <strong>Error fetching details:</strong> ${escapeHtml(s.detailError)}
             </div>
         `;
         return;
@@ -88,101 +97,146 @@ function renderDrawerBody(containerEl, s) {
     const d = s.cveDetail;
     if (!d) return;
 
-    // Save inspected CVE to local triage history
     saveRecentCveToLocalStorage(d);
 
     cveTitle.textContent = d.cve_id;
-    pubDate.textContent = `Published: ${new Date(d.published).toLocaleString()}`;
+    pubDate.textContent = `Published: ${d.published ? d.published.substring(0, 10) : 'Unknown'}`;
 
-    // EPSS Snapshot Callout (Non-historical warning)
-    let epssHtml = '';
-    if (d.epss) {
-        epssHtml = `
-            <div class="epss-snapshot-callout">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-                    <strong>Current EPSS Snapshot (${d.epss.snapshot_date.substring(0, 10)})</strong>
-                    <span class="badge badge-epss">Score: ${(d.epss.epss_score * 100).toFixed(2)}% | ${(d.epss.epss_percentile * 100).toFixed(0)}th %tile</span>
-                </div>
-                <div>Model Version: ${d.epss.model_version}</div>
-                <div style="margin-top: 4px; color: var(--text-muted); font-style: italic;">
-                    Warning: EPSS score is a present-day static snapshot (2026-07-16) and was NOT available at historical publication triage time.
-                </div>
-            </div>
-        `;
-    }
+    // CVSS Badge & Class
+    const cvssVal = d.authoritative_cvss_v31_base_score;
+    let cvssBadgeClass = 'badge-low';
+    if (cvssVal >= 9.0) cvssBadgeClass = 'badge-critical';
+    else if (cvssVal >= 7.0) cvssBadgeClass = 'badge-high';
+    else if (cvssVal >= 4.0) cvssBadgeClass = 'badge-medium';
+    else if (cvssVal === null) cvssBadgeClass = 'badge-neutral';
+
+    const cvssDisplay = cvssVal !== null ? `${cvssVal.toFixed(1)} ${d.cvss_v31_base_severity || ''}` : 'Unscored';
+    const epssDisplay = d.epss 
+        ? `${(d.epss.epss_score * 100).toFixed(2)}% (Percentile: ${(d.epss.epss_percentile * 100).toFixed(0)}th)` 
+        : 'N/A';
 
     // KEV Callout
     let kevHtml = '';
     if (d.is_kev) {
         kevHtml = `
-            <div style="background-color: #fef2f2; border: 1px solid #fca5a5; border-radius: var(--radius-md); padding: 14px; margin-bottom: 20px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                    <span class="badge badge-kev">CISA Known Exploited Vulnerabilities Catalog</span>
-                    <span style="font-size: 11px; color: var(--error); font-family: var(--font-mono);">Date Added: ${d.kev_date_added || 'N/A'}</span>
+            <div class="callout-box callout-scarlet">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+                    <strong>CISA Known Exploited Vulnerability</strong>
+                    <span style="font-family: var(--font-mono); font-size: 11px;">Added: ${d.kev_date_added || 'N/A'}</span>
                 </div>
-                <div style="font-weight: 600; color: #991b1b; margin-bottom: 4px;">${escapeHtml(d.kev_vulnerability_name || d.cve_id)}</div>
-                <div style="font-size: 12px; color: var(--text-main); margin-bottom: 6px;">${escapeHtml(d.kev_short_description || '')}</div>
-                <div style="font-size: 12px; color: #991b1b; font-weight: 600;">Required Action: ${escapeHtml(d.kev_required_action || 'Remediate per CISA directive.')}</div>
-                ${d.kev_ransomware_campaign_use === 'Known' ? '<div style="margin-top:4px; font-weight:700; color:var(--error); font-size:11px;">WARNING: KNOWN RANSOMWARE CAMPAIGN USE</div>' : ''}
+                <div style="margin-bottom: 4px; font-weight: 600;">${escapeHtml(d.kev_vulnerability_name || d.cve_id)}</div>
+                <div style="margin-bottom: 6px;">${escapeHtml(d.kev_short_description || '')}</div>
+                <div><strong>Action Required:</strong> ${escapeHtml(d.kev_required_action || 'Remediate per CISA directive.')}</div>
+                ${d.kev_ransomware_campaign_use === 'Known' 
+                    ? '<div style="margin-top: 6px; font-weight: 700; font-family: var(--font-mono); font-size: 11px;">[!] KNOWN RANSOMWARE CAMPAIGN USE</div>' 
+                    : ''}
             </div>
         `;
     }
 
-    // Authoritative CVSS
-    const cvssVal = d.authoritative_cvss_v31_base_score;
-    let cvssDisplay = 'None / Unscored';
-    if (cvssVal !== null) {
-        cvssDisplay = `${cvssVal.toFixed(1)} (${d.cvss_v31_base_severity || 'Unspecified'})`;
-    }
+    // CWE Badges
+    const cweBadges = d.cwes && d.cwes.length > 0
+        ? d.cwes.map(c => `<span class="badge ${c.is_semantic_cwe ? 'badge-high' : 'badge-neutral'}">${c.cwe_id}</span>`).join(' ')
+        : '<span style="color:var(--text-muted); font-size:12px;">No CWE taxonomy classified</span>';
 
-    // CWE list
-    const cweBadges = d.cwes.length > 0
-        ? d.cwes.map(c => `<span class="badge ${c.is_semantic_cwe ? 'badge-high' : 'badge-secondary'}">${c.cwe_id}</span>`).join(' ')
-        : '<span style="color:var(--text-muted);">No CWE classification</span>';
-
-    // CPE List
-    const cpeListHtml = d.cpes.length > 0
+    // CPE Applicability Rows
+    const cpeListHtml = d.cpes && d.cpes.length > 0
         ? d.cpes.map(c => `
-            <tr style="font-family: var(--font-mono); font-size: 11px;">
-                <td>${c.part || '-'}</td>
-                <td>${escapeHtml(c.vendor || '-')}</td>
-                <td>${escapeHtml(c.product || '-')}</td>
-                <td>${escapeHtml(c.version || '*')}</td>
+            <tr>
+                <td style="font-family: var(--font-mono);">${c.part || '—'}</td>
+                <td>${escapeHtml(c.vendor || '—')}</td>
+                <td>${escapeHtml(c.product || '—')}</td>
+                <td style="font-family: var(--font-mono);">${escapeHtml(c.version || '*')}</td>
             </tr>
         `).join('')
-        : '<tr><td colspan="4" style="color:var(--text-muted);">No structured CPE applicability nodes</td></tr>';
+        : '<tr><td colspan="4" style="color:var(--text-muted); text-align:center;">No structured CPE applicability nodes</td></tr>';
 
     body.innerHTML = `
-        ${epssHtml}
+        <!-- Threat & Severity Status Strip -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+            <div style="background-color: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 10px;">
+                <div class="input-label">CVSS v3.1</div>
+                <div style="margin-top: 4px;"><span class="badge ${cvssBadgeClass}">${cvssDisplay}</span></div>
+            </div>
+            <div style="background-color: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 10px;">
+                <div class="input-label">EPSS Snapshot</div>
+                <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 600; margin-top: 4px;">
+                    ${d.epss ? (d.epss.epss_score * 100).toFixed(2) + '%' : 'N/A'}
+                </div>
+            </div>
+            <div style="background-color: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 10px;">
+                <div class="input-label">KEV Catalog</div>
+                <div style="margin-top: 4px;">
+                    ${d.is_kev ? '<span class="badge badge-kev">Active Exploit</span>' : '<span class="badge badge-neutral">Not Listed</span>'}
+                </div>
+            </div>
+        </div>
+
         ${kevHtml}
 
-        <div class="card" style="padding: 16px; margin-bottom: 16px;">
-            <div class="input-label" style="margin-bottom: 6px;">Description</div>
-            <div style="font-size: 13px; color: var(--text-main); leading: 1.6;">${escapeHtml(d.description_en)}</div>
-        </div>
-
-        <div class="card" style="padding: 16px; margin-bottom: 16px;">
-            <div class="input-label" style="margin-bottom: 8px;">Authoritative NVD CVSS v3.1 Score</div>
-            <div style="font-family: var(--font-mono); font-size: 24px; font-weight: 700; color: var(--primary); margin-bottom: 6px;">
-                ${cvssDisplay}
+        <!-- Description Group -->
+        <div class="drawer-section">
+            <div class="drawer-section-title">Description</div>
+            <div style="font-size: 13px; color: var(--text-primary); line-height: 1.55;">
+                ${escapeHtml(d.description_en || 'No description recorded in NVD.')}
             </div>
-            ${d.cvss_v31_vector ? `<div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-sub); background: var(--bg-surface-low); padding: 6px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">${d.cvss_v31_vector}</div>` : ''}
         </div>
 
-        <div class="card" style="padding: 16px; margin-bottom: 16px;">
-            <div class="input-label" style="margin-bottom: 8px;">Associated CWE Weaknesses</div>
-            <div>${cweBadges}</div>
+        <!-- Technical Score Details -->
+        <div class="drawer-section">
+            <div class="drawer-section-title">Authoritative Scoring Details</div>
+            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px;">
+                ${d.cvss_v31_vector ? `
+                    <div style="display: flex; gap: 8px; align-items: baseline;">
+                        <span style="color: var(--text-secondary); width: 80px; flex-shrink: 0;">Vector String:</span>
+                        <code style="background: var(--bg-muted); padding: 2px 6px; border-radius: var(--radius-xs); border: 1px solid var(--border-subtle);">${escapeHtml(d.cvss_v31_vector)}</code>
+                    </div>
+                ` : ''}
+                ${d.epss ? `
+                    <div style="display: flex; gap: 8px; align-items: baseline;">
+                        <span style="color: var(--text-secondary); width: 80px; flex-shrink: 0;">EPSS Model:</span>
+                        <span style="font-family: var(--font-mono); font-size: 11px;">${d.epss.model_version} (Snapshot: ${d.epss.snapshot_date.substring(0, 10)})</span>
+                    </div>
+                ` : ''}
+            </div>
+            ${d.epss ? `
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px; font-style: italic;">
+                    Temporal Note: Static EPSS snapshot was not available at historical publication time.
+                </div>
+            ` : ''}
         </div>
 
-        <div class="card" style="padding: 16px;">
-            <div class="input-label" style="margin-bottom: 8px;">CPE Applicability (Top 20 Nodes)</div>
-            <table class="data-table" style="font-size: 11px;">
-                <thead>
-                    <tr><th>Part</th><th>Vendor</th><th>Product</th><th>Version</th></tr>
-                </thead>
-                <tbody>${cpeListHtml}</tbody>
-            </table>
+        <!-- Weaknesses (CWE) -->
+        <div class="drawer-section">
+            <div class="drawer-section-title">Weakness Taxonomy (CWE)</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                ${cweBadges}
+            </div>
         </div>
+
+        <!-- Affected Software Configurations (CPE) Disclosure -->
+        <details class="disclosure">
+            <summary>
+                <span>Affected Software Configurations (${d.cpes ? d.cpes.length : 0} nodes)</span>
+            </summary>
+            <div class="disclosure-content" style="padding: 0;">
+                <div class="table-container" style="border: none; border-radius: 0;">
+                    <table class="data-table" style="font-size: 11px;">
+                        <thead>
+                            <tr>
+                                <th>Part</th>
+                                <th>Vendor</th>
+                                <th>Product</th>
+                                <th>Version</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${cpeListHtml}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </details>
     `;
 }
 
@@ -204,7 +258,7 @@ function saveRecentCveToLocalStorage(d) {
         });
         localStorage.setItem('wdl_recent_cves', JSON.stringify(list.slice(0, 10)));
     } catch (e) {
-        // Ignore quota/storage errors
+        // Ignore local storage quota errors
     }
 }
 
@@ -220,12 +274,12 @@ function printVulnerabilityReport(d) {
         : 'None / Unscored';
 
     const epssDisplay = d.epss
-        ? `${(d.epss.epss_score * 100).toFixed(2)}% (Percentile: ${(d.epss.epss_percentile * 100).toFixed(0)}th %tile, Model: ${d.epss.model_version})`
+        ? `${(d.epss.epss_score * 100).toFixed(2)}% (Percentile: ${(d.epss.epss_percentile * 100).toFixed(0)}th, Model: ${d.epss.model_version})`
         : 'N/A';
 
     const cweDisplay = d.cwes && d.cwes.length > 0
         ? d.cwes.map(c => c.cwe_id).join(', ')
-        : 'None listed';
+        : 'None classified';
 
     const reportHtml = `
         <!DOCTYPE html>
@@ -233,74 +287,66 @@ function printVulnerabilityReport(d) {
         <head>
             <title>Vulnerability Triage Report — ${d.cve_id}</title>
             <style>
-                body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.5; color: #1e293b; padding: 32px; background: #fff; }
-                .report-header { border-bottom: 2px solid #0f172a; padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; }
-                .title { font-size: 24px; font-weight: 700; color: #0f172a; margin: 0; }
-                .sub { font-size: 13px; color: #64748b; margin-top: 4px; }
-                .badge { display: inline-block; padding: 4px 10px; font-size: 12px; font-weight: 600; border-radius: 4px; background: #e2e8f0; color: #0f172a; }
-                .badge-high { background: #fee2e2; color: #991b1b; }
-                .badge-kev { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
-                .section { margin-bottom: 24px; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; background: #f8fafc; }
-                .sec-title { font-size: 14px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 10px; border-bottom: 1px solid #cbd5e1; padding-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-                .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; }
-                .disclaimer-box { font-size: 11px; color: #475569; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-top: 32px; line-height: 1.6; }
+                body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.5; color: #292723; padding: 32px; background: #fff; font-size: 13px; }
+                .report-header { border-bottom: 2px solid #45403A; padding-bottom: 14px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start; }
+                .title { font-size: 22px; font-weight: 700; color: #292723; margin: 0; font-family: monospace; }
+                .sub { font-size: 12px; color: #625E56; margin-top: 3px; }
+                .badge { display: inline-block; padding: 2px 8px; font-size: 11px; font-weight: 600; border-radius: 3px; background: #EAE7E0; color: #292723; border: 1px solid #DED9CF; font-family: monospace; }
+                .badge-critical { background: #F5E5E2; color: #A83B3B; border-color: #E8B4B4; }
+                .badge-kev { background: #F5E5E2; color: #A83B3B; border-color: #E8B4B4; font-weight: 700; }
+                .section { margin-bottom: 18px; border: 1px solid #DED9CF; border-radius: 4px; padding: 14px; background: #FCFBF8; }
+                .sec-title { font-size: 11px; font-weight: 700; color: #625E56; margin-top: 0; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; font-family: monospace; }
+                .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; }
+                .disclaimer-box { font-size: 11px; color: #625E56; background: #F5F3EE; border: 1px solid #DED9CF; border-radius: 4px; padding: 10px; margin-top: 24px; line-height: 1.5; }
                 @media print { body { padding: 0; } }
             </style>
         </head>
         <body>
             <div class="report-header">
                 <div>
-                    <h1 class="title">Vulnerability Triage Report</h1>
-                    <div class="sub">Generated on ${new Date().toLocaleString()} • Web Design Lab Research Prototype</div>
+                    <h1 class="title">${d.cve_id}</h1>
+                    <div class="sub">Vulnerability Prioritization & Triage System • Operational Report</div>
                 </div>
                 <div style="text-align: right;">
-                    <div style="font-family: monospace; font-size: 18px; font-weight: 700; color: #2563eb;">${d.cve_id}</div>
-                    <div class="sub">Published: ${new Date(d.published).toLocaleDateString()}</div>
+                    <span class="badge ${d.is_kev ? 'badge-kev' : 'badge-critical'}">${cvssDisplay}</span>
+                    <div style="font-size: 11px; color: #625E56; margin-top: 4px;">Published: ${d.published ? d.published.substring(0, 10) : 'N/A'}</div>
                 </div>
             </div>
 
-            <!-- Authoritative NVD CVSS Section -->
             <div class="section">
-                <h2 class="sec-title">1. Authoritative Vulnerability Metadata (NVD)</h2>
-                <div class="grid">
-                    <div><strong>CVSS v3.1 Score:</strong> ${cvssDisplay}</div>
-                    <div><strong>Associated CWEs:</strong> ${cweDisplay}</div>
-                    <div style="grid-column: 1 / -1; margin-top: 6px;">
-                        <strong>Description:</strong><br>
-                        <span style="font-size: 12px; color: #334155;">${d.description_en || 'No text description available.'}</span>
-                    </div>
-                    ${d.cvss_v31_vector ? `<div style="grid-column: 1 / -1; font-family: monospace; font-size: 11px; color: #475569; background: #e2e8f0; padding: 6px; border-radius: 4px;">Vector: ${d.cvss_v31_vector}</div>` : ''}
-                </div>
+                <div class="sec-title">Description</div>
+                <div>${escapeHtml(d.description_en || 'No description recorded.')}</div>
             </div>
 
-            <!-- Threat Intelligence & Retrospective EPSS Section -->
             <div class="section">
-                <h2 class="sec-title">2. Threat Intelligence Context</h2>
+                <div class="sec-title">Threat Signals & Exploitation Status</div>
                 <div class="grid">
-                    <div><strong>CISA KEV Listing Status:</strong> ${d.is_kev ? '<span class="badge badge-kev">CISA KEV Listed</span>' : 'Not listed in CISA KEV'}</div>
-                    <div><strong>Current EPSS Snapshot Score:</strong> ${epssDisplay}</div>
-                    ${d.is_kev ? `<div style="grid-column: 1 / -1; color: #991b1b; font-weight: 600;">KEV Required Action: ${d.kev_required_action || 'Remediate per CISA directive.'}</div>` : ''}
-                </div>
-                <div style="font-size: 11px; color: #64748b; margin-top: 8px; font-style: italic;">
-                    Notice: The EPSS score above reflects a present-day static snapshot dated 2026-07-16T12:03:48Z and was NOT available at historical publication triage time.
+                    <div><strong>CISA KEV Status:</strong> ${d.is_kev ? 'Confirmed In-The-Wild Exploitation' : 'Not listed in KEV catalog'}</div>
+                    <div><strong>EPSS Probability:</strong> ${epssDisplay}</div>
+                    <div><strong>CVSS v3.1 Vector:</strong> <code>${d.cvss_v31_vector || 'N/A'}</code></div>
+                    <div><strong>Weaknesses:</strong> ${cweDisplay}</div>
                 </div>
             </div>
 
-            <!-- Academic Disclaimer Footer -->
+            ${d.is_kev ? `
+                <div class="section" style="border-left: 3px solid #A83B3B;">
+                    <div class="sec-title" style="color: #A83B3B;">CISA KEV Catalog Remediation Directives</div>
+                    <div><strong>Vulnerability Name:</strong> ${escapeHtml(d.kev_vulnerability_name || d.cve_id)}</div>
+                    <div><strong>Required Action:</strong> ${escapeHtml(d.kev_required_action || 'Remediate per CISA directive.')}</div>
+                    <div><strong>Action Due Date:</strong> ${d.kev_due_date || 'N/A'}</div>
+                </div>
+            ` : ''}
+
             <div class="disclaimer-box">
-                <strong>Academic Prototype Disclaimer:</strong><br>
-                This report clearly distinguishes Authoritative NVD/CISA Data from Predictive Model Inference and Decision-Support Prioritization. This document was generated by the Vulnerability Prioritization & Triage System (seucra/vulnarability-prioritization-triage-system) for research demonstration purposes.
+                <strong>Academic Research Disclaimer:</strong>
+                This report was generated by the Vulnerability Prioritization & Triage System research prototype (Repository: seucra/vulnarability-prioritization-triage-system).
+                Prioritization metrics are decision-support outputs based on frozen snapshot data (Freeze Date: 2026-07-26; EPSS: 2026-07-16) and must not replace organizational security policy.
             </div>
-
-            <script>
-                window.onload = function() {
-                    window.print();
-                };
-            </script>
         </body>
         </html>
     `;
 
     printWin.document.write(reportHtml);
     printWin.document.close();
+    printWin.focus();
 }

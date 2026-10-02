@@ -11,106 +11,100 @@ export function renderAnalystDashboard(containerEl) {
     containerEl.innerHTML = `
         <div class="section-header">
             <div>
-                <h2 class="section-title">Security Analyst Operational Triage Dashboard</h2>
-                <p class="section-desc">Real-time vulnerability triage, active threat discovery, KEV catalog highlights, and guided triage workflows.</p>
+                <h2 class="section-title">Security Analyst Operational Workspace</h2>
+                <p class="section-desc">Active threat triage queue, CISA KEV catalog highlights, dual-mode priority scoring, and recent inspection audit trail.</p>
             </div>
-            <span class="badge badge-low" style="font-size: 12px; padding: 6px 12px;">Active Role: Security Analyst</span>
+            <span class="badge badge-gold" style="font-size: 11px;">Role: Security Analyst</span>
         </div>
 
         <div id="analyst-status-container"></div>
 
-        <!-- Operational Triage KPIs -->
-        <div class="provenance-grid" style="margin-bottom: 24px;">
-            <div class="provenance-stat-box">
-                <div class="provenance-stat-label">Total Canonical CVEs</div>
-                <div class="provenance-stat-val" id="analyst-stat-cves">366,547</div>
-                <div style="font-size: 11px; color: var(--text-sub); margin-top: 4px;">NVD CVE Dataset (2002–2026)</div>
+        <!-- Operational KPIs -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 24px;">
+            <div class="card" style="padding: 14px 16px; margin-bottom: 0;">
+                <div style="font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.04em;">Canonical Corpus</div>
+                <div style="font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--text-primary); margin-top: 4px;" id="analyst-stat-cves">366,547</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">NVD CVEs (2002–2026)</div>
             </div>
 
-            <div class="provenance-stat-box" style="border-left: 4px solid var(--error);">
-                <div class="provenance-stat-label">CISA KEV Exploited CVEs</div>
-                <div class="provenance-stat-val" id="analyst-stat-kev" style="color: var(--error);">1,647</div>
-                <div style="font-size: 11px; color: var(--error); font-weight: 600; margin-top: 4px;">Active In-the-Wild Exploitation</div>
+            <div class="card" style="padding: 14px 16px; margin-bottom: 0; border-top: 3px solid var(--accent-scarlet);">
+                <div style="font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; color: var(--accent-scarlet); letter-spacing: 0.04em;">CISA KEV Exploited</div>
+                <div style="font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--accent-scarlet); margin-top: 4px;" id="analyst-stat-kev">1,647</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Confirmed in-the-wild threats</div>
             </div>
 
-            <div class="provenance-stat-box">
-                <div class="provenance-stat-label">EPSS Snapshot Coverage</div>
-                <div class="provenance-stat-val" id="analyst-stat-epss">348,900</div>
-                <div style="font-size: 11px; color: var(--text-sub); margin-top: 4px;">Snapshot Dated 2026-07-16</div>
+            <div class="card" style="padding: 14px 16px; margin-bottom: 0;">
+                <div style="font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.04em;">EPSS Coverage</div>
+                <div style="font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--text-primary); margin-top: 4px;" id="analyst-stat-epss">348,900</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Snapshot 2026-07-16</div>
             </div>
 
-            <div class="provenance-stat-box">
-                <div class="provenance-stat-label">Prioritization Engine</div>
-                <div class="provenance-stat-val" style="font-size: 16px; color: var(--primary);">Dual-Mode Ready</div>
-                <div style="font-size: 11px; color: var(--text-sub); margin-top: 4px;">Mode 1 Linear & Mode 2 Surface</div>
-            </div>
-        </div>
-
-        <!-- Operational Guided Workflow Grid -->
-        <h3 class="section-title" style="font-size: 16px; margin-bottom: 12px;">Operational Triage Workflow</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 24px;">
-            <div class="card" style="margin-bottom: 0; cursor: pointer; border-left: 3px solid var(--primary);" onclick="window.location.hash='explorer'">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <strong style="font-size: 13px; color: var(--primary);">Step 1: Explore & Filter</strong>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-                </div>
-                <p style="font-size: 12px; color: var(--text-sub);">Search 366,547 CVEs by vendor, CWE weakness, CVSS range, and KEV presence.</p>
-            </div>
-
-            <div class="card" style="margin-bottom: 0; cursor: pointer; border-left: 3px solid var(--tertiary);" onclick="window.location.hash='predict'">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <strong style="font-size: 13px; color: var(--tertiary);">Step 2: Predict Risk</strong>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-                </div>
-                <p style="font-size: 12px; color: var(--text-sub);">Run EXP-A1 CVSS estimation or EXP-B2 publication-time KEV risk classifier.</p>
-            </div>
-
-            <div class="card" style="margin-bottom: 0; cursor: pointer; border-left: 3px solid var(--success);" onclick="window.location.hash='prioritize'">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <strong style="font-size: 13px; color: var(--success);">Step 3: Asset Prioritization</strong>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-                </div>
-                <p style="font-size: 12px; color: var(--text-sub);">Simulate Asset Criticality Tiers (0.25 to 1.00) using Mode 1 vs Mode 2 surfaces.</p>
-            </div>
-
-            <div class="card" style="margin-bottom: 0; cursor: pointer; border-left: 3px solid var(--primary);" onclick="window.location.hash='explain'">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <strong style="font-size: 13px; color: var(--primary);">Step 4: Explain Features</strong>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-                </div>
-                <p style="font-size: 12px; color: var(--text-sub);">Inspect local SHAP TreeExplainer feature attributions and disclosure signals.</p>
+            <div class="card" style="padding: 14px 16px; margin-bottom: 0;">
+                <div style="font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.04em;">Prioritization Surface</div>
+                <div style="font-family: var(--font-mono); font-size: 18px; font-weight: 700; color: var(--text-primary); margin-top: 8px;">Dual-Mode Engine</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Mode 1 Linear & Mode 2 Surface</div>
             </div>
         </div>
 
-        <div class="workspace-grid" style="margin-bottom: 24px;">
+        <!-- Guided Workflows -->
+        <div style="margin-bottom: 24px;">
+            <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 12px;">
+                OPERATIONAL WORKFLOWS
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+                <div class="card" style="margin-bottom: 0; cursor: pointer; padding: 16px; transition: all var(--transition-fast);" onclick="window.location.hash='explorer'">
+                    <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">1. Explorer & Search &rarr;</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">Query 366,547 CVEs by vendor, CWE weakness, and CVSS range.</div>
+                </div>
+
+                <div class="card" style="margin-bottom: 0; cursor: pointer; padding: 16px; transition: all var(--transition-fast);" onclick="window.location.hash='triage'">
+                    <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">2. Batch Triage Queue &rarr;</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">Rank multiple vulnerability lists under asset criticality tiers.</div>
+                </div>
+
+                <div class="card" style="margin-bottom: 0; cursor: pointer; padding: 16px; transition: all var(--transition-fast);" onclick="window.location.hash='prioritize'">
+                    <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">3. Prioritization Sandbox &rarr;</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">Compare Mode 1 linear baseline vs Mode 2 interactive surface.</div>
+                </div>
+
+                <div class="card" style="margin-bottom: 0; cursor: pointer; padding: 16px; transition: all var(--transition-fast);" onclick="window.location.hash='predict'">
+                    <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">4. ML Predictions &rarr;</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">Run EXP-A1 CVSS estimation or EXP-B2 publication-time KEV risk.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="workspace-grid" style="grid-template-columns: 1.2fr 0.8fr; gap: 24px; align-items: start;">
             <!-- Active KEV High-Priority Triage Panel -->
-            <div class="card" style="margin-bottom: 0;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <h3 class="card-title" style="margin-bottom: 0;">CISA KEV Catalog Highlights</h3>
-                    <button class="btn btn-outline btn-sm" onclick="window.location.hash='explorer'">View All in Explorer &rarr;</button>
+            <div class="card">
+                <div class="card-header" style="padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+                    <h3 class="card-title" style="font-size: 15px; margin: 0;">Recent CISA KEV Exploitations</h3>
+                    <button class="btn btn-secondary btn-sm" onclick="window.location.hash='explorer'">View in Explorer</button>
                 </div>
-                <div style="overflow-x: auto;">
-                    <table class="triage-table">
+                <div class="table-container">
+                    <table class="data-table">
                         <thead>
                             <tr>
                                 <th>CVE ID</th>
                                 <th>CVSS v3.1</th>
-                                <th>EPSS Score</th>
+                                <th>EPSS</th>
                                 <th>Published</th>
-                                <th>Triage Action</th>
+                                <th style="text-align: right;">Action</th>
                             </tr>
                         </thead>
                         <tbody id="analyst-kev-table-body">
-                            <tr><td colspan="5" style="text-align: center; color: var(--text-sub); padding: 16px;">Loading active KEV vulnerabilities...</td></tr>
+                            <tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 24px;">Querying KEV entries...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
             <!-- Recently Visited CVE Triage History (localStorage) -->
-            <div class="card" style="margin-bottom: 0;">
-                <h3 class="card-title">Recent Analyst Triage History</h3>
-                <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 12px;">Recently inspected vulnerabilities saved in local session history.</p>
+            <div class="card">
+                <div class="card-header" style="padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-subtle);">
+                    <h3 class="card-title" style="font-size: 15px; margin: 0;">Inspection History</h3>
+                    <p style="font-size: 12px; color: var(--text-secondary); margin: 2px 0 0 0;">Recently examined vulnerabilities in local session.</p>
+                </div>
                 <div id="analyst-recent-history-container">
                     <!-- Populated dynamically -->
                 </div>
@@ -122,30 +116,30 @@ export function renderAnalystDashboard(containerEl) {
 }
 
 async function loadAnalystDashboardData(containerEl) {
-    // Load KEV Vulnerabilities for Triage Table
     const kevTbody = containerEl.querySelector('#analyst-kev-table-body');
     try {
         const res = await api.getVulnerabilities({ is_kev: 'true', page_size: 5, sort_by: 'published', sort_dir: 'desc' });
         if (res && res.items && res.items.length > 0) {
-            kevTbody.innerHTML = res.items.map(item => `
-                <tr>
-                    <td style="font-family: var(--font-mono); font-weight: 600; color: var(--primary);">${item.cve_id}</td>
-                    <td>
-                        <span class="badge ${item.authoritative_cvss_v31_base_score >= 9.0 ? 'badge-high' : 'badge-medium'}">
-                            ${item.authoritative_cvss_v31_base_score !== null ? item.authoritative_cvss_v31_base_score.toFixed(1) : 'N/A'}
-                        </span>
-                    </td>
-                    <td style="font-family: var(--font-mono); font-size: 12px;">
-                        ${item.epss_score !== null ? (item.epss_score * 100).toFixed(2) + '%' : 'N/A'}
-                    </td>
-                    <td style="font-size: 11px; color: var(--text-sub);">${item.published_date ? item.published_date.split('T')[0] : 'N/A'}</td>
-                    <td>
-                        <button class="btn btn-outline btn-sm analyst-triage-btn" data-cve="${item.cve_id}" style="padding: 2px 8px; font-size: 11px;">
-                            Prioritize &rarr;
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+            kevTbody.innerHTML = res.items.map(item => {
+                const cvss = item.authoritative_cvss_v31_base_score;
+                const cvssBadge = cvss >= 9.0 ? 'badge-scarlet' : cvss >= 7.0 ? 'badge-gold' : 'badge-neutral';
+                const epssPct = item.epss_score !== null ? (item.epss_score * 100).toFixed(2) + '%' : '—';
+                const pubDate = item.published_date ? item.published_date.split('T')[0] : '—';
+
+                return `
+                    <tr>
+                        <td style="font-family: var(--font-mono); font-weight: 600; color: var(--text-primary); font-size: 12px;">${escapeHtml(item.cve_id)}</td>
+                        <td><span class="badge ${cvssBadge}" style="font-size: 10px;">${cvss !== null ? cvss.toFixed(1) : '—'}</span></td>
+                        <td style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);">${epssPct}</td>
+                        <td style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);">${pubDate}</td>
+                        <td style="text-align: right;">
+                            <button class="btn btn-ghost btn-sm analyst-triage-btn" data-cve="${escapeHtml(item.cve_id)}" type="button" style="padding: 2px 8px; font-size: 11px;">
+                                Prioritize
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
 
             kevTbody.querySelectorAll('.analyst-triage-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -162,7 +156,7 @@ async function loadAnalystDashboardData(containerEl) {
         }
     } catch (err) {
         if (kevTbody) {
-            kevTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-sub);">Unable to fetch live KEV vulnerabilities.</td></tr>`;
+            kevTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 16px;">Unable to load KEV records.</td></tr>`;
         }
     }
 
@@ -173,20 +167,20 @@ async function loadAnalystDashboardData(containerEl) {
         const recentItems = recentStr ? JSON.parse(recentStr) : [];
         if (recentItems.length === 0) {
             historyContainer.innerHTML = `
-                <div style="font-size: 12px; color: var(--text-sub); background: var(--bg-surface-low); padding: 12px; border-radius: var(--radius-md); text-align: center;">
-                    No recent vulnerability detail inspections in this session. Inspect CVEs in the Explorer to add them to your history.
+                <div style="font-size: 12px; color: var(--text-muted); background: var(--bg-muted); padding: 16px; border-radius: var(--radius-sm); text-align: center;">
+                    No recent vulnerability detail inspections. Click any CVE in the Explorer to inspect details.
                 </div>
             `;
         } else {
             historyContainer.innerHTML = `
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     ${recentItems.slice(0, 5).map(r => `
-                        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface-low); padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-muted); padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
                             <div>
-                                <strong style="font-family: var(--font-mono); font-size: 12px; color: var(--primary);">${r.cve_id}</strong>
-                                <span style="font-size: 11px; color: var(--text-sub); margin-left: 6px;">CVSS: ${r.cvss || 'N/A'}</span>
+                                <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--text-primary);">${escapeHtml(r.cve_id)}</span>
+                                <span style="font-size: 11px; color: var(--text-secondary); margin-left: 8px;">CVSS: ${r.cvss !== null ? r.cvss : '—'}</span>
                             </div>
-                            <button class="btn btn-outline btn-sm history-open-btn" data-cve="${r.cve_id}" style="padding: 2px 8px; font-size: 11px;">View Detail</button>
+                            <button class="btn btn-ghost btn-sm history-open-btn" data-cve="${escapeHtml(r.cve_id)}" type="button" style="padding: 2px 8px; font-size: 11px;">Inspect</button>
                         </div>
                     `).join('')}
                 </div>
@@ -200,6 +194,11 @@ async function loadAnalystDashboardData(containerEl) {
             });
         }
     } catch (e) {
-        historyContainer.innerHTML = `<div style="font-size: 12px; color: var(--text-sub);">No history available.</div>`;
+        historyContainer.innerHTML = `<div style="font-size: 12px; color: var(--text-muted);">No history available.</div>`;
     }
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }

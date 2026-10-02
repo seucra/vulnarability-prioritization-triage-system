@@ -7,60 +7,58 @@ import { api } from '../api.js';
 
 export function renderRegisterView(containerEl) {
     containerEl.innerHTML = `
-        <div style="max-width: 520px; margin: 40px auto;">
-            <div class="card" style="padding: 32px; border-top: 4px solid var(--tertiary);">
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
-                    <div style="background: var(--bg-surface-container); padding: 10px; border-radius: var(--radius-md); color: var(--tertiary);">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        <div style="max-width: 480px; margin: 40px auto;">
+            <div class="card" style="padding: 28px;">
+                <div style="margin-bottom: 20px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 14px;">
+                    <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent-gold); margin-bottom: 4px;">
+                        ACCOUNT PROVISIONING
                     </div>
-                    <div>
-                        <h3 style="font-size: 18px; font-weight: 700; color: var(--text-main);">Demonstration Registration</h3>
-                        <div style="font-size: 12px; color: var(--text-sub);">Create Security Analyst or Researcher Account</div>
-                    </div>
+                    <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;">Register Demonstration Account</h3>
+                    <p style="font-size: 12px; color: var(--text-secondary); margin: 4px 0 0 0;">
+                        Create a Security Analyst or Academic Researcher account.
+                    </p>
                 </div>
 
                 <div id="register-status-container"></div>
 
                 <form id="form-register">
-                    <div style="margin-bottom: 14px;">
-                        <label class="input-label" for="reg-name">Full Name</label>
-                        <input type="text" id="reg-name" class="text-input" placeholder="e.g. Dr. Jane Doe" required style="width: 100%; box-sizing: border-box;">
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label class="form-label" for="reg-name">Full Name</label>
+                        <input type="text" id="reg-name" class="form-input" placeholder="e.g. Dr. Jane Doe" required>
                     </div>
 
-                    <div style="margin-bottom: 14px;">
-                        <label class="input-label" for="reg-email">Email Address</label>
-                        <input type="email" id="reg-email" class="text-input" placeholder="e.g. jane.doe@research.org" required style="width: 100%; box-sizing: border-box;">
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label class="form-label" for="reg-email">Email Address</label>
+                        <input type="email" id="reg-email" class="form-input" placeholder="e.g. jane.doe@research.org" required>
                     </div>
 
-                    <div style="margin-bottom: 14px;">
-                        <label class="input-label" for="reg-role">Application Role</label>
-                        <select id="reg-role" class="text-input" required style="width: 100%; box-sizing: border-box;">
-                            <option value="analyst">Security Analyst — Operational Vulnerability Triage</option>
-                            <option value="researcher">Researcher — Academic Methodology & Inspection</option>
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label class="form-label" for="reg-role">Application Role</label>
+                        <select id="reg-role" class="form-select" required>
+                            <option value="analyst">Security Analyst — Operational Prioritization & Triage</option>
+                            <option value="researcher">Academic Researcher — Inspection & Explainability</option>
                         </select>
-                        <div style="font-size: 11px; color: var(--text-sub); margin-top: 4px;">
-                            Administrator accounts are system-provisioned and cannot be registered publicly.
-                        </div>
+                        <span class="form-hint">Administrator accounts are system-seeded.</span>
                     </div>
 
-                    <div style="margin-bottom: 14px;">
-                        <label class="input-label" for="reg-password">Password (Minimum 8 Characters)</label>
-                        <input type="password" id="reg-password" class="text-input" placeholder="••••••••••••" minlength="8" required style="width: 100%; box-sizing: border-box;">
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label class="form-label" for="reg-password">Password (Minimum 8 Characters)</label>
+                        <input type="password" id="reg-password" class="form-input" placeholder="••••••••••••" minlength="8" required>
                     </div>
 
-                    <div style="margin-bottom: 20px;">
-                        <label class="input-label" for="reg-confirm-password">Confirm Password</label>
-                        <input type="password" id="reg-confirm-password" class="text-input" placeholder="••••••••••••" minlength="8" required style="width: 100%; box-sizing: border-box;">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label" for="reg-confirm-password">Confirm Password</label>
+                        <input type="password" id="reg-confirm-password" class="form-input" placeholder="••••••••••••" minlength="8" required>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" id="btn-register-submit" style="width: 100%; padding: 11px; font-size: 14px; font-weight: 600;">
+                    <button type="submit" class="btn btn-primary" id="btn-register-submit" style="width: 100%; justify-content: center; height: 38px;">
                         Create Demonstration Account
                     </button>
                 </form>
 
-                <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color); text-align: center; font-size: 13px; color: var(--text-sub);">
+                <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border-subtle); text-align: center; font-size: 12px; color: var(--text-secondary);">
                     Already have an account? 
-                    <a href="#login" style="color: var(--primary); font-weight: 600; text-decoration: none;">Sign In Here</a>
+                    <a href="#login" style="color: var(--text-primary); font-weight: 600; text-decoration: underline;">Sign In Here</a>
                 </div>
             </div>
         </div>
@@ -81,21 +79,22 @@ export function renderRegisterView(containerEl) {
 
         if (password !== confirmPassword) {
             statusContainer.innerHTML = `
-                <div class="error-banner" style="margin-bottom: 16px;">
-                    <strong>Validation Error:</strong> Passwords do not match.
+                <div style="background: var(--bg-muted); border: 1px solid var(--accent-scarlet); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 16px;">
+                    <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--accent-scarlet);">VALIDATION ERROR</div>
+                    <div style="font-size: 12px; color: var(--text-primary); margin-top: 4px;">Passwords do not match.</div>
                 </div>
             `;
             return;
         }
 
         btnSubmit.disabled = true;
-        btnSubmit.textContent = 'Creating Account...';
+        btnSubmit.textContent = 'Provisioning Account...';
 
         try {
             await api.register({ name, email, role, password });
             statusContainer.innerHTML = `
-                <div style="background: var(--bg-surface-low); border: 1px solid var(--success); color: var(--success); padding: 14px; border-radius: var(--radius-md); margin-bottom: 16px; font-size: 13px;">
-                    <strong>Registration Successful!</strong> Your demonstration account has been created. Redirecting to login...
+                <div style="background: var(--bg-muted); border: 1px solid var(--accent-gold); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px; font-size: 12px; color: var(--text-primary);">
+                    <strong>Account Created Successfully.</strong> Redirecting to login...
                 </div>
             `;
             setTimeout(() => {
@@ -103,12 +102,19 @@ export function renderRegisterView(containerEl) {
             }, 1200);
         } catch (err) {
             statusContainer.innerHTML = `
-                <div class="error-banner" style="margin-bottom: 16px;">
-                    <strong>Registration Failed:</strong> ${err.message}
+                <div style="background: var(--bg-muted); border: 1px solid var(--accent-scarlet); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 16px;">
+                    <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--accent-scarlet);">REGISTRATION ERROR</div>
+                    <div style="font-size: 12px; color: var(--text-primary); margin-top: 4px;">${escapeHtml(err.message)}</div>
                 </div>
             `;
+        } finally {
             btnSubmit.disabled = false;
             btnSubmit.textContent = 'Create Demonstration Account';
         }
     });
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }

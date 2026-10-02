@@ -99,6 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (views.explorer) renderExplorer(views.explorer);
     if (views.predict) renderPredictionView(views.predict);
     if (views.prioritize) renderPrioritizationView(views.prioritize);
+    if (views.triage) renderTriageView(views.triage);
     if (views.explain) renderExplanationView(views.explain);
 
     if (views.provenance) renderProvenanceView(views.provenance);
